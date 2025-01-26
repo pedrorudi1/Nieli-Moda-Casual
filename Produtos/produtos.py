@@ -2,7 +2,7 @@ from Database import database
 from Gui import gui
 
 def abrir_cadastro_produtos():
-    from Produtos import preencher_campos_produto, cadastrar_produto #excluir_produto # cadastrar_produto, atualizar_produto
+    from Produtos import preencher_campos_produto, cadastrar_produto, atualizar_produto, excluir_produto
     global tree_produtos, entry_tipo, entry_cor, entry_tamanho, entry_preco_custo, entry_preco_venda, entry_quantidade
     
     gui.canvas.delete("all")
@@ -44,10 +44,10 @@ def abrir_cadastro_produtos():
                                font=("Arial", 12), bg="#4CAF50", fg="white")
     gui.canvas.create_window(650, 360, window=btn_cadastrar)
 
-    btn_atualizar = gui.Button(gui.App, text="Atualizar", command=lambda: produto.atualizar_produto, font=("Arial", 12), bg="#2196F3", fg="white")
+    btn_atualizar = gui.Button(gui.App, text="Atualizar", command=lambda: atualizar_produto(), font=("Arial", 12), bg="#2196F3", fg="white")
     gui.canvas.create_window(755, 360, window=btn_atualizar)
 
-    btn_excluir = gui.Button(gui.App, text="Excluir", command=lambda: produto.excluir_produto, font=("Arial", 12), bg="#f44336", fg="white")
+    btn_excluir = gui.Button(gui.App, text="Excluir", command=lambda: excluir_produto(tree_produtos), font=("Arial", 12), bg="#f44336", fg="white")
     gui.canvas.create_window(850, 360, window=btn_excluir)
 
     tree_produtos = gui.ttk.Treeview(gui.App, columns=("ID", "Tipo", "Cor", "Tamanho", "Preço Custo", "Preço Venda", "Quantidade"), show="headings")
@@ -68,7 +68,7 @@ def abrir_cadastro_produtos():
     gui.canvas.create_window(700, 540, window=tree_produtos, width=800, height=300)
 
     tree_produtos.bind("<Double-1>", preencher_campos_produto)
-     #tree_produtos.bind("<Delete>", excluir_produto)
+    tree_produtos.bind("<Delete>", excluir_produto)
 
     atualizar_tabela_produtos(tree_produtos)
 
@@ -108,7 +108,55 @@ def cadastrar_produto(entry_tipo,
         print("Erro: A tabela de produtos não foi encontrada.")
 
     gui.messagebox.showinfo("Sucesso", "Produto cadastrado com sucesso!")
+
+def atualizar_produto():
     
+    selected_item = tree_produtos.selection()
+    if not selected_item:
+        gui.messagebox.showwarning("Aviso", "Por favor, selecione um produto para atualizar.")
+        return
+    
+    selected_item = selected_item[0]
+    id = tree_produtos.item(selected_item)['values'][0]
+    
+    novo_tipo = entry_tipo.get().strip()
+    novo_cor = entry_cor.get().strip()
+    novo_tamanho = entry_tamanho.get().strip()
+    novo_preco_custo = entry_preco_custo.get().strip()
+    novo_preco_venda = entry_preco_venda.get().strip()
+    novo_quantidade = entry_quantidade.get().strip()
+        
+               
+    conn = database.create_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE produtos SET tipo=?, cor=?, tamanho=?, preco_custo=?, preco_venda=?, quantidade=? WHERE id=?",
+        (novo_tipo, novo_cor, novo_tamanho, novo_preco_custo, novo_preco_venda, novo_quantidade, id))
+    
+    conn.commit()
+    gui.messagebox.showinfo("Sucesso", "Produto atualizado com sucesso.")
+    conn.close()
+    
+    atualizar_tabela_produtos(tree_produtos)
+
+def excluir_produto (tree_produtos):
+    selected_item = tree_produtos.selection()
+    if not selected_item:
+        gui.messagebox.showwarning("Aviso", "Por favor, selecione um produto para excluir.")
+        return
+
+    resposta = gui.messagebox.askyesno("Confirmar exclusão", "Tem certeza que deseja excluir este produto?")
+    if resposta:
+        id = tree_produtos.item(selected_item)['values'][0]
+
+        conn = database.create_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM PRODUTOS WHERE id = ?", (id,))
+        conn.commit()
+        tree_produtos.delete(selected_item)
+        gui.messagebox.showinfo("Sucesso", "Produto excluído com sucesso.")
+        atualizar_tabela_produtos(tree_produtos)
+        conn.close()    
+        
 def preencher_campos_produto(Event):
     
     item_selecionado = tree_produtos.selection()
