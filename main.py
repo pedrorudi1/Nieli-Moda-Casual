@@ -5,4 +5,11 @@ from Gui import gui
 database.criar_banco_dados()
 
 def main():
+    
+    try:
+        import pyi_splash
+        pyi_splash.close()
+    except ImportError:
+        pass
+    
     gui.App.mainloop()

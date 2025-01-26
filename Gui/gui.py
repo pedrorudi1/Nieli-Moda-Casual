@@ -1,6 +1,6 @@
 from tkinter import Tk, Canvas, Entry, Button, PhotoImage, ttk, messagebox, Toplevel, Label, Frame, StringVar, END, LEFT, RIGHT, BOTH
-from Clientes import clientes
-from Produtos import produtos
+from Clientes import abrir_cadastro_clientes
+from Produtos import abrir_cadastro_produtos
 
     
 App = Tk()
@@ -20,9 +20,9 @@ canvas = Canvas(App, width=1200, height=740)
 canvas.pack(fill="both", expand=True)
 canvas.create_image(0, 0, image=FotoBG, anchor="nw")
 
-BtnClientes = Button(App, text='Clientes', image=FotoClientes, command=clientes.abrir_cadastro_clientes, font=("Arial", 12))
+BtnClientes = Button(App, text='Clientes', image=FotoClientes, command=abrir_cadastro_clientes, font=("Arial", 12))
 BtnClientes.place(x=52.0, y=80.0)
-BtnProdutos = Button(App, text='Produtos', image=FotoProdutos, command=produtos.abrir_cadastro_produtos, font=("Arial", 12))
+BtnProdutos = Button(App, text='Produtos', image=FotoProdutos, command=abrir_cadastro_produtos, font=("Arial", 12))
 BtnProdutos.place(x=52.0, y=180.0)
 BtnVendas = Button(App, text='Vendas', image=FotoVendas)
 BtnVendas.place(x=52.0, y=280.0)
@@ -34,11 +34,5 @@ BtnDashboard = Button(App, text='Dashboard', image=FotoRelatorios)
 BtnDashboard.place(x=52.0, y=580.0)
 
 App.resizable(False, False)
-
-try:
-    import pyi_splash
-    pyi_splash.close()
-except ImportError:
-    pass
 
 App.mainloop()
