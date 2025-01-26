@@ -2,10 +2,10 @@ from Database import database
 from Gui import gui
 
 
-global tree_clientes
     
 def abrir_cadastro_clientes():
-    from Clientes.clientes import cadastrar_cliente, excluir_cliente
+    from Clientes import cadastrar_cliente, excluir_cliente, preencher_campos_cliente
+    global entry_nome, entry_telefone, tree_clientes
     
     gui.canvas.delete("all")
     gui.canvas.create_image(0, 0, image=gui.FotoBG, anchor="nw")
@@ -29,12 +29,15 @@ def abrir_cadastro_clientes():
     tree_clientes = gui.ttk.Treeview(gui.App, columns=("Código", "Nome", "Telefone"), show="headings")
     tree_clientes.column("Código", width=100, minwidth=100, stretch="no")
     tree_clientes.heading("Código", text="Código")
-    tree_clientes.column("Nome", width=300, minwidth=300, stretch=Yes)
+    tree_clientes.column("Nome", width=300, minwidth=300, stretch="yes")
     tree_clientes.heading("Nome", text="Nome")
-    tree_clientes.column("Telefone", width=150, minwidth=300, stretch=No)
+    tree_clientes.column("Telefone", width=150, minwidth=300, stretch="no")
     tree_clientes.heading("Telefone", text="Telefone")
     gui.canvas.create_window(700, 500, window=tree_clientes, width=800, height=300)
     
+    
+    tree_clientes.bind("<Double-1>", preencher_campos_cliente)
+
     atualizar_tabela_clientes(tree_clientes)
     
 def cadastrar_cliente(entry_nome, entry_telefone, tree_clientes):
@@ -109,3 +112,14 @@ def excluir_cliente (tree_clientes):
             gui.messagebox.showerror("Erro", f"Ocorreu um erro ao excluir o cliente: {str(e)}")
         finally:
             conn.close()
+            
+def preencher_campos_cliente(Event):
+    
+    item_selecionado = tree_clientes.selection()
+    if item_selecionado:
+        valores = tree_clientes.item(item_selecionado, 'values')
+        
+        entry_nome.delete(0, 'end')
+        entry_telefone.delete(0, 'end')
+        entry_nome.insert(0, valores[1])
+        entry_telefone.insert(0, valores[2])
