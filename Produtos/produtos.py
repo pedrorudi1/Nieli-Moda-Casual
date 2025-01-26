@@ -45,7 +45,7 @@ def abrir_cadastro_produtos():
     gui.canvas.create_window(650, 360, window=btn_cadastrar)
 
     btn_atualizar = gui.Button(gui.App, text="Atualizar", command=lambda: produto.atualizar_produto, font=("Arial", 12), bg="#2196F3", fg="white")
-    gui.canvas.create_window(750, 360, window=btn_atualizar)
+    gui.canvas.create_window(755, 360, window=btn_atualizar)
 
     btn_excluir = gui.Button(gui.App, text="Excluir", command=lambda: produto.excluir_produto, font=("Arial", 12), bg="#f44336", fg="white")
     gui.canvas.create_window(850, 360, window=btn_excluir)
@@ -71,7 +71,6 @@ def abrir_cadastro_produtos():
      #tree_produtos.bind("<Delete>", excluir_produto)
 
     atualizar_tabela_produtos(tree_produtos)
-    
 
 def cadastrar_produto(entry_tipo,
                       entry_cor,
@@ -109,7 +108,6 @@ def cadastrar_produto(entry_tipo,
         print("Erro: A tabela de produtos não foi encontrada.")
 
     gui.messagebox.showinfo("Sucesso", "Produto cadastrado com sucesso!")
-
     
 def preencher_campos_produto(Event):
     
@@ -129,7 +127,6 @@ def preencher_campos_produto(Event):
         entry_preco_custo.insert(0, valores[4])
         entry_preco_venda.insert(0, valores[5])
         entry_quantidade.insert(0, valores[6])
-    
     
 def atualizar_tabela_produtos(tree_produtos):
     

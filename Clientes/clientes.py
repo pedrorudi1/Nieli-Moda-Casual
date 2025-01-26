@@ -22,9 +22,12 @@ def abrir_cadastro_clientes():
 
     btn_cadastrar = gui.Button(gui.App, text="Cadastrar", command=lambda: cadastrar_cliente(entry_nome, entry_telefone, tree_clientes), font=("Arial", 12), bg="#4CAF50", fg="white")
     gui.canvas.create_window(650, 290, window=btn_cadastrar)
+    
+    btn_atualizar = gui.Button(gui.App, text="Atualizar", command=lambda: atualizar_cliente(), font=("Arial", 12), bg="#2196F3", fg="white")
+    gui.canvas.create_window(755, 290, window=btn_atualizar)
 
     btn_excluir = gui.Button(gui.App, text="Excluir", command=lambda: excluir_cliente(tree_clientes), font=("Arial", 12), bg="#f44336", fg="white")
-    gui.canvas.create_window(750, 290, window=btn_excluir)
+    gui.canvas.create_window(850, 290, window=btn_excluir)
 
     tree_clientes = gui.ttk.Treeview(gui.App, columns=("Código", "Nome", "Telefone"), show="headings")
     tree_clientes.column("Código", width=100, minwidth=100, stretch="no")
@@ -68,6 +71,31 @@ def cadastrar_cliente(entry_nome, entry_telefone, tree_clientes):
     conn.close()
     atualizar_tabela_clientes(tree_clientes)
 
+def atualizar_cliente():
+    
+    selected_item = tree_clientes.selection()
+    if not selected_item:
+        gui.messagebox.showwarning("Aviso", "Por favor, selecione um cliente para atualizar.")
+        return
+    
+    selected_item = selected_item[0]
+    codigo_cliente = tree_clientes.item(selected_item)['values'][0]
+    
+    novo_nome = entry_nome.get().strip()
+    novo_telefone = entry_telefone.get().strip()
+    
+               
+    conn = database.create_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE clientes SET nome=?, telefone=? WHERE codigo_cliente=?",
+        (novo_nome, novo_telefone, codigo_cliente))
+    
+    conn.commit()
+    gui.messagebox.showinfo("Sucesso", "Cliente atualizado com sucesso.")
+    conn.close()
+    
+    atualizar_tabela_clientes(tree_clientes)
+        
 def atualizar_tabela_clientes(tree_clientes):
     
     conn = database.create_connection()
