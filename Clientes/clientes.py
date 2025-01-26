@@ -29,9 +29,9 @@ def abrir_cadastro_clientes():
     tree_clientes = gui.ttk.Treeview(gui.App, columns=("Código", "Nome", "Telefone"), show="headings")
     tree_clientes.column("Código", width=100, minwidth=100, stretch="no")
     tree_clientes.heading("Código", text="Código")
-    tree_clientes.column("Nome", width=300, minwidth=300, stretch="yes")
+    tree_clientes.column("Nome", width=300, minwidth=300, stretch=Yes)
     tree_clientes.heading("Nome", text="Nome")
-    tree_clientes.column("Telefone", width=150, minwidth=300, stretch="no")
+    tree_clientes.column("Telefone", width=150, minwidth=300, stretch=No)
     tree_clientes.heading("Telefone", text="Telefone")
     gui.canvas.create_window(700, 500, window=tree_clientes, width=800, height=300)
     
