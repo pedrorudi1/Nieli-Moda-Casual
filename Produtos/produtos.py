@@ -44,10 +44,19 @@ def abrir_cadastro_produtos():
                                font=("Arial", 12), bg="#4CAF50", fg="white")
     gui.canvas.create_window(650, 360, window=btn_cadastrar)
 
-    btn_atualizar = gui.Button(gui.App, text="Atualizar", command=lambda: atualizar_produto(), font=("Arial", 12), bg="#2196F3", fg="white")
+    btn_atualizar = gui.Button(gui.App, text="Atualizar",
+                               command=lambda: atualizar_produto(),
+                               font=("Arial", 12),
+                               bg="#2196F3",
+                               fg="white")
     gui.canvas.create_window(755, 360, window=btn_atualizar)
 
-    btn_excluir = gui.Button(gui.App, text="Excluir", command=lambda: excluir_produto(tree_produtos), font=("Arial", 12), bg="#f44336", fg="white")
+    btn_excluir = gui.Button(gui.App,
+                             text="Excluir",
+                             command=lambda: excluir_produto(tree_produtos), 
+                             font=("Arial", 12),
+                             bg="#f44336",
+                             fg="white")
     gui.canvas.create_window(850, 360, window=btn_excluir)
 
     tree_produtos = gui.ttk.Treeview(gui.App, columns=("ID", "Tipo", "Cor", "Tamanho", "Preço Custo", "Preço Venda", "Quantidade"), show="headings")
