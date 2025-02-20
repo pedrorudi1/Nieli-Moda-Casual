@@ -40,6 +40,7 @@ def abrir_cadastro_clientes():
     
     
     tree_clientes.bind("<Double-1>", preencher_campos_cliente)
+    tree_clientes.bind("<Delete>", del_para_excluir)
 
     atualizar_tabela_clientes(tree_clientes)
     
@@ -151,3 +152,6 @@ def preencher_campos_cliente(Event):
         entry_telefone.delete(0, 'end')
         entry_nome.insert(0, valores[1])
         entry_telefone.insert(0, valores[2])
+
+def del_para_excluir(Event):
+    excluir_cliente(tree_clientes)
