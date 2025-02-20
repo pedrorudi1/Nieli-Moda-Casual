@@ -77,7 +77,7 @@ def abrir_cadastro_produtos():
     gui.canvas.create_window(700, 540, window=tree_produtos, width=800, height=300)
 
     tree_produtos.bind("<Double-1>", preencher_campos_produto)
-    tree_produtos.bind("<Delete>", excluir_produto)
+    tree_produtos.bind("<Delete>", del_para_excluir)
 
     atualizar_tabela_produtos(tree_produtos)
 
@@ -200,3 +200,6 @@ def atualizar_tabela_produtos(tree_produtos):
         tree_produtos.insert("", "end", values=row)
     
     conn.close()
+
+def del_para_excluir(Event):
+    excluir_produto(tree_produtos)
