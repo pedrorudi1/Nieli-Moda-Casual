@@ -35,4 +35,10 @@ BtnDashboard.place(x=52.0, y=580.0)
 
 App.resizable(False, False)
 
+try:
+    import pyi_splash
+    pyi_splash.close()
+except ImportError:
+    pass
+
 App.mainloop()
