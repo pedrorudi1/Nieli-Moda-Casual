@@ -85,6 +85,12 @@ def atualizar_cliente():
     novo_nome = entry_nome.get().strip()
     novo_telefone = entry_telefone.get().strip()
     
+    if not novo_nome:
+        gui.messagebox.showerror("Erro", "Por favor, preencha o nome do cliente que deseja atualizar.")
+        return
+    
+    if not novo_telefone:
+        novo_telefone = "-"
                
     conn = database.create_connection()
     cursor = conn.cursor()
