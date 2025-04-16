@@ -29,8 +29,8 @@ def abrir_cadastro_vendas():
     atualizar_combo_produtos()
 
     # Estoque disponível
-    lbl_estoque = ttk.Label(frame_selecao, text="Estoque disponível: -")
-    lbl_estoque.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
+    lbl_estoque = ttk.Label(frame_selecao, text="Em estoque: -")
+    lbl_estoque.grid(row=3, column=1, columnspan=2, padx=5, pady=5)
 
     # Quantidade
     ttk.Label(frame_selecao, text="Quantidade:").grid(row=3, column=0, padx=5, pady=5)
@@ -38,8 +38,8 @@ def abrir_cadastro_vendas():
     entry_quantidade.grid(row=3, column=1, sticky='w', padx=5, pady=5)
 
     # Botões
-    btn_adicionar = ttk.Button(frame_selecao, text="Adicionar Item", 
-                              command=lambda: adicionar_item_venda())
+    btn_adicionar = gui.Button(frame_selecao, text="Adicionar Item", 
+                              command=lambda: adicionar_item_venda(), font=("Arial", 12), bg="#4CAF50", fg="white")
     btn_adicionar.grid(row=4, column=0, columnspan=2, pady=10)
 
     # Tabela de itens da venda atual
@@ -51,10 +51,20 @@ def abrir_cadastro_vendas():
     tree_itens.heading("Total", text="Total")
     gui.canvas.create_window(700, 350, window=tree_itens, width=600)
 
-    # Botão Finalizar Venda
-    btn_finalizar = ttk.Button(gui.App, text="Finalizar Venda", 
-                              command=lambda: finalizar_venda(tree_itens))
-    gui.canvas.create_window(700, 450, window=btn_finalizar)
+    # Botões de controle dos itens
+    btn_remover = gui.Button(gui.App, text="Remover Item",
+                            command=lambda: remover_item_venda(),
+                            font=("Arial", 12),
+                            bg="#f44336",
+                            fg="white")
+    gui.canvas.create_window(650, 450, window=btn_remover)
+    
+    btn_finalizar = gui.Button(gui.App, text="Finalizar Venda",
+                              command=lambda: finalizar_venda(tree_itens),
+                              font=("Arial", 12),
+                              bg="#2196F3",
+                              fg="white")
+    gui.canvas.create_window(775, 450, window=btn_finalizar)
 
     # Histórico de Vendas
     tree_vendas = ttk.Treeview(gui.App, 
@@ -64,14 +74,20 @@ def abrir_cadastro_vendas():
     tree_vendas.heading("Cliente", text="Cliente")
     tree_vendas.heading("Valor Total", text="Valor Total")
     tree_vendas.heading("Data", text="Data")
-    gui.canvas.create_window(700, 600, window=tree_vendas, width=800)
-    
+    gui.canvas.create_window(700, 580, window=tree_vendas, width=800, height=125)
+
     # Botão Excluir Venda
-    btn_excluir = ttk.Button(gui.App, text="Excluir Venda", 
-                            command=lambda: excluir_venda())
+    btn_excluir = gui.Button(gui.App, text="Excluir Venda",
+                            command=lambda: excluir_venda(),
+                            font=("Arial", 12),
+                            bg="#f44336",
+                            fg="white")
     gui.canvas.create_window(700, 680, window=btn_excluir)
     
     atualizar_historico_vendas()
+    tree_itens.bind("<Delete>", del_para_remover_item_venda)
+    tree_vendas.bind("<Delete>", del_para_excluir_venda)
+
 
 def atualizar_combo_clientes():
     conn = database.create_connection()
@@ -271,3 +287,18 @@ def excluir_venda():
         gui.messagebox.showerror("Erro", f"Erro ao excluir venda: {str(e)}")
     finally:
         conn.close()
+
+def remover_item_venda():
+    selected_item = tree_itens.selection()
+    if not selected_item:
+        gui.messagebox.showerror("Erro", "Selecione um item para remover")
+        return
+        
+    if gui.messagebox.askyesno("Confirmar", "Deseja remover este item da venda?"):
+        tree_itens.delete(selected_item)
+
+def del_para_remover_item_venda(event):
+    remover_item_venda()
+
+def del_para_excluir_venda(event):
+    excluir_venda()
