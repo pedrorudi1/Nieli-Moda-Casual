@@ -1,6 +1,5 @@
 from Gui import gui
 from Database import database
-from datetime import datetime
 from tkinter import messagebox
 import pywhatkit
 import time
