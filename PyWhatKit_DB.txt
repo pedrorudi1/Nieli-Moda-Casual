@@ -43,3 +43,13 @@ Time: 14:31
 Phone Number: +5515997237653
 Message: Olá Pedro, Notamos que você possui um valor pendente de R$ R$ 369.00 em nossa loja.Poderia nos informar quando será possível realizar o pagamento?Agradecemos sua atenção!
 --------------------
+Date: 17/4/2025
+Time: 17:20
+Phone Number: +5515997237653
+Message: Olá Pedro Rudi, Notamos que você possui um valor pendente de R$ R$ 4000.00 em nossa loja.Poderia nos informar quando será possível realizar o pagamento?Agradecemos sua atenção!
+--------------------
+Date: 17/4/2025
+Time: 17:20
+Phone Number: +5515997322105
+Message: Olá Rosângela Rudi, Notamos que você possui um valor pendente de R$ R$ 475.94 em nossa loja.Poderia nos informar quando será possível realizar o pagamento?Agradecemos sua atenção!
+--------------------

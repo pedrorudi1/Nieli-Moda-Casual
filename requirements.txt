@@ -1,0 +1,5 @@
+pillow==10.2.0  # Para manipulação de imagens (PIL/ImageTk)
+pywhatkit==5.4  # Para envio de mensagens WhatsApp
+pyautogui==0.9.54  # Dependência do pywhatkit
+wikipedia==1.4.0  # Dependência do pywhatkit
+requests==2.31.0  # Dependência do pywhatkit
