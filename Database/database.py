@@ -51,8 +51,22 @@ def criar_banco_dados():
                        venda_id INTEGER,
                        valor_pago REAL,
                        data_pagamento DATETIME,
+                       tipo_pagamento TEXT DEFAULT 'DINHEIRO',
                        FOREIGN KEY (cliente_id) REFERENCES clientes (codigo_cliente),
                        FOREIGN KEY (venda_id) REFERENCES vendas (id))''')
     
+    #Tabela de créditos
+    cursor.execute('''CREATE TABLE IF NOT EXISTS creditos
+                      (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                       cliente_id INTEGER,
+                       valor REAL,
+                       usado INTEGER DEFAULT 0,
+                       data_credito TEXT,
+                       observacao TEXT,
+                       FOREIGN KEY(cliente_id) REFERENCES clientes(codigo_cliente));''')
+    
+   
+
+        
     conn.commit()
     conn.close()

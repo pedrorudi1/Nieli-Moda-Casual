@@ -2,6 +2,7 @@ from tkinter import Tk, Canvas, Entry, Button, PhotoImage, ttk, messagebox, Topl
 from Clientes import abrir_cadastro_clientes
 from Produtos import abrir_cadastro_produtos
 from Vendas import abrir_cadastro_vendas
+from ContasAReceber import abrir_contas_a_receber
 
     
 App = Tk()
@@ -27,7 +28,7 @@ BtnProdutos = Button(App, text='Produtos', image=FotoProdutos, command=abrir_cad
 BtnProdutos.place(x=52.0, y=180.0)
 BtnVendas = Button(App, text='Vendas', image=FotoVendas, command=abrir_cadastro_vendas, font=("Arial", 12))
 BtnVendas.place(x=52.0, y=280.0)
-BtnContasAReceber = Button(App, text='Contas a Receber', image=FotoContasAReceber)
+BtnContasAReceber = Button(App, text='Contas a Receber', image=FotoContasAReceber, command=abrir_contas_a_receber, font=("Arial", 12))
 BtnContasAReceber.place(x=52.0, y=380.0)
 BtnPromocoes = Button(App, text='Promoções', image=FotoPromocoes)
 BtnPromocoes.place(x=52.0, y=480.0)
