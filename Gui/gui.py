@@ -1,4 +1,4 @@
-from tkinter import Tk, Canvas, Entry, Button, PhotoImage, ttk, messagebox, Toplevel, Label, Frame, StringVar, END, LEFT, RIGHT, BOTH
+from tkinter import Tk, Canvas, Entry, Button, PhotoImage, ttk, messagebox, Toplevel, Label, Frame, StringVar, END, LEFT, RIGHT, BOTH, Text
 from Clientes import abrir_cadastro_clientes
 from Produtos import abrir_cadastro_produtos
 from Vendas import abrir_cadastro_vendas

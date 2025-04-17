@@ -1,11 +1,14 @@
 from Gui import gui
 from Database import database
 from datetime import datetime
+from tkinter import messagebox
+import pywhatkit
+import time
 
 def abrir_contas_a_receber():
     global tree_vendas, entry_valor_pago, selected_venda, tree_pagamentos, tree_creditos
     global entry_valor_credito, entry_obs_credito
-    global combo_clientes, btn_usar_credito, lbl_credito_disponivel
+    global combo_clientes, btn_usar_credito, lbl_credito_disponivel, tree_cobranca
     selected_venda = None
 
     gui.canvas.delete("all")
@@ -176,8 +179,71 @@ def abrir_contas_a_receber():
     
     tree_creditos.pack(pady=10, fill='both', expand=True)
 
+    # Aba 4 - Cobrança
+    tab_cobranca = gui.ttk.Frame(notebook)
+    notebook.add(tab_cobranca, text="Cobrança")
+
+    # Frame para lista de clientes com valores pendentes
+    frame_lista = gui.ttk.Frame(tab_cobranca)
+    frame_lista.pack(pady=10, fill='both', expand=True)
+
+    # Tabela de clientes com valores pendentes
+    tree_cobranca = gui.ttk.Treeview(frame_lista,
+                                    columns=("Selecionar", "Cliente", "Telefone", "Valor Pendente"),
+                                    show="headings",
+                                    height=10)
+    
+    tree_cobranca.heading("Selecionar", text="Selecionar")
+    tree_cobranca.heading("Cliente", text="Cliente")
+    tree_cobranca.heading("Telefone", text="Telefone")
+    tree_cobranca.heading("Valor Pendente", text="Valor Pendente")
+    
+    tree_cobranca.column("Selecionar", width=70)
+    tree_cobranca.column("Cliente", width=200)
+    tree_cobranca.column("Telefone", width=120)
+    tree_cobranca.column("Valor Pendente", width=120)
+    
+    tree_cobranca.pack(pady=10, padx=10, fill='both')
+
+    # Frame para mensagem e botões
+    frame_mensagem = gui.ttk.Frame(tab_cobranca)
+    frame_mensagem.pack(pady=10, padx=10, fill='x')
+
+    # Campo para mensagem personalizada
+    gui.ttk.Label(frame_mensagem, text="Mensagem personalizada:").pack(anchor='w')
+    text_mensagem = gui.Text(frame_mensagem, height=4, width=50)
+    text_mensagem.pack(pady=5, fill='x')
+    
+    # Mensagem padrão
+    mensagem_padrao = """Olá {cliente}, 
+Notamos que você possui um valor pendente de R$ {valor} em nossa loja.
+Poderia nos informar quando será possível realizar o pagamento?
+Agradecemos sua atenção!"""
+    
+    text_mensagem.insert('1.0', mensagem_padrao)
+
+    # Frame para botões
+    frame_botoes = gui.ttk.Frame(tab_cobranca)
+    frame_botoes.pack(pady=10)
+
+    # Botões
+    btn_enviar = gui.Button(frame_botoes,
+                           text="Enviar Cobrança",
+                           command=lambda: enviar_cobranca(tree_cobranca, text_mensagem.get('1.0', 'end-1c')),
+                           font=("Arial", 12),
+                           bg="#4CAF50",
+                           fg="white")
+    btn_enviar.pack(side='left', padx=5)
+
+    # Atualizar lista de cobranças
+    atualizar_lista_cobrancas(tree_cobranca)
+
+    # Adicionar binding para checkbox
+    tree_cobranca.bind('<Button-1>', toggle_checkbox)
+
     # Inicializar dados
     tree_vendas.bind("<<TreeviewSelect>>", lambda e: on_select_venda())
+    tree_cobranca.bind("<Button-1>", toggle_checkbox)
     atualizar_lista_vendas()
     atualizar_combo_clientes(combo_clientes)
     atualizar_combo_clientes(combo_clientes_credito)
@@ -546,3 +612,70 @@ def atualizar_lista_creditos():
         tree_creditos.insert("", "end", values=credito)
     
     conn.close()
+
+def atualizar_lista_cobrancas(tree):
+    conn = database.create_connection()
+    cursor = conn.cursor()
+    
+    # Limpar tabela
+    for item in tree.get_children():
+        tree.delete(item)
+    
+    # Buscar clientes com valores pendentes
+    cursor.execute("""
+        SELECT DISTINCT 
+            c.nome, 
+            c.telefone,
+            (v.valor_total - COALESCE(SUM(p.valor_pago), 0)) as valor_pendente
+        FROM vendas v
+        JOIN clientes c ON v.cliente_id = c.codigo_cliente
+        LEFT JOIN pagamentos p ON v.id = p.venda_id
+        GROUP BY v.id
+        HAVING valor_pendente > 0
+        ORDER BY c.nome
+    """)
+    
+    for row in cursor.fetchall():
+        tree.insert('', 'end', values=('☐', row[0], row[1], f"R$ {row[2]:.2f}"))
+    
+    conn.close()
+
+def enviar_cobranca(tree, mensagem):
+    selecionados = []
+    for item in tree.get_children():
+        if tree.item(item)['values'][0] == '☒':  # Checkbox marcado
+            selecionados.append(tree.item(item)['values'])
+    
+    if not selecionados:
+        messagebox.showerror("Erro", "Selecione pelo menos um cliente para enviar cobrança")
+        return
+
+    for cliente in selecionados:
+        nome = cliente[1]
+        telefone = cliente[2].replace('(', '').replace(')', '').replace('-', '').replace(' ', '')
+        valor = cliente[3]
+        
+        msg = mensagem.format(cliente=nome, valor=valor)
+        
+        try:
+            # Enviar mensagem via WhatsApp
+            pywhatkit.sendwhatmsg_instantly(
+                phone_no=f"+55{telefone}",
+                message=msg,
+                wait_time=15
+            )
+            time.sleep(2)  # Aguardar envio
+            
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao enviar mensagem para {nome}: {str(e)}")
+            continue
+
+    messagebox.showinfo("Sucesso", "Cobranças enviadas com sucesso!")
+
+def toggle_checkbox(event):
+    item = tree_cobranca.identify_row(event.y)
+    if item:
+        valores = list(tree_cobranca.item(item)['values'])
+        novo_valor = '☒' if valores[0] == '☐' else '☐'
+        valores[0] = novo_valor
+        tree_cobranca.item(item, values=tuple(valores))
