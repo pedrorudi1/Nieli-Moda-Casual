@@ -4,8 +4,9 @@ from tkinter import ttk
 import datetime
 
 def abrir_cadastro_vendas():
-    global entry_cliente, entry_produto, entry_quantidade, tree_vendas, combo_clientes, combo_produtos, tree_itens, lbl_estoque
-    
+    global entry_cliente, entry_produto, entry_quantidade, tree_vendas, combo_clientes
+    global combo_produtos, tree_itens, lbl_estoque, lbl_valor_calculado, entry_valor_final
+
     gui.canvas.delete("all")
     gui.canvas.create_image(0, 0, image=gui.FotoBG, anchor="nw")
     
@@ -51,20 +52,34 @@ def abrir_cadastro_vendas():
     tree_itens.heading("Total", text="Total")
     gui.canvas.create_window(700, 350, window=tree_itens, width=600)
 
+    # Frame para valor total e desconto
+    frame_valor = ttk.Frame(gui.App)
+    gui.canvas.create_window(700, 430, window=frame_valor)
+
+    # Valor calculado
+    ttk.Label(frame_valor, text="Valor calculado:").grid(row=0, column=0, padx=5, pady=5)
+    lbl_valor_calculado = ttk.Label(frame_valor, text="R$ 0,00")
+    lbl_valor_calculado.grid(row=0, column=1, padx=5, pady=5)
+
+    # Valor final
+    ttk.Label(frame_valor, text="Valor final:").grid(row=0, column=2, padx=5, pady=5)
+    entry_valor_final = ttk.Entry(frame_valor, width=15)
+    entry_valor_final.grid(row=0, column=3, padx=5, pady=5)
+
     # Botões de controle dos itens
     btn_remover = gui.Button(gui.App, text="Remover Item",
                             command=lambda: remover_item_venda(),
                             font=("Arial", 12),
                             bg="#f44336",
                             fg="white")
-    gui.canvas.create_window(650, 450, window=btn_remover)
+    gui.canvas.create_window(650, 470, window=btn_remover)
     
     btn_finalizar = gui.Button(gui.App, text="Finalizar Venda",
                               command=lambda: finalizar_venda(tree_itens),
                               font=("Arial", 12),
                               bg="#2196F3",
                               fg="white")
-    gui.canvas.create_window(775, 450, window=btn_finalizar)
+    gui.canvas.create_window(775, 470, window=btn_finalizar)
 
     # Histórico de Vendas
     tree_vendas = ttk.Treeview(gui.App, 
@@ -153,10 +168,23 @@ def adicionar_item_venda():
     produto_info = combo_produtos.get().split('-')[1].strip()
     tree_itens.insert("", "end", values=(produto_info, quantidade, f"R${preco:.2f}", f"R${valor_total:.2f}", produto_id))
     entry_quantidade.delete(0, 'end')
+    
+    # Update calculated value
+    valor_calculado = sum(float(tree_itens.item(item)["values"][3].replace("R$", "")) 
+                         for item in tree_itens.get_children())
+    lbl_valor_calculado.config(text=f"R$ {valor_calculado:.2f}")
+    entry_valor_final.delete(0, 'end')
+    entry_valor_final.insert(0, f"{valor_calculado:.2f}")
 
 def finalizar_venda(tree_itens):
     if not combo_clientes.get() or len(tree_itens.get_children()) == 0:
         gui.messagebox.showerror("Erro", "Selecione um cliente e adicione itens à venda")
+        return
+
+    try:
+        valor_final = float(entry_valor_final.get().replace(",", "."))
+    except ValueError:
+        gui.messagebox.showerror("Erro", "Valor final inválido")
         return
 
     cliente_id = int(combo_clientes.get().split('-')[0].strip())
@@ -164,14 +192,11 @@ def finalizar_venda(tree_itens):
     conn = database.create_connection()
     cursor = conn.cursor()
     
-    # Inserir venda
-    valor_total = sum(float(tree_itens.item(item)["values"][3].replace("R$", "")) 
-                     for item in tree_itens.get_children())
-    
+    # Inserir venda usando o valor final manual
     cursor.execute("""
         INSERT INTO vendas (cliente_id, valor_total, data_venda)
         VALUES (?, ?, datetime('now', 'localtime'))
-    """, (cliente_id, valor_total))
+    """, (cliente_id, valor_final))
     
     venda_id = cursor.lastrowid
 
