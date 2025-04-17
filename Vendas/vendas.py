@@ -103,7 +103,6 @@ def abrir_cadastro_vendas():
     tree_itens.bind("<Delete>", del_para_remover_item_venda)
     tree_vendas.bind("<Delete>", del_para_excluir_venda)
 
-
 def atualizar_combo_clientes():
     conn = database.create_connection()
     cursor = conn.cursor()
