@@ -67,8 +67,22 @@ def criar_banco_dados():
                        observacao TEXT,
                        FOREIGN KEY(cliente_id) REFERENCES clientes(codigo_cliente));''')
     
-   
+    #Tabela de Bags
+    cursor.execute('''CREATE TABLE IF NOT EXISTS bags
+                      (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                      cliente_id INTEGER,
+                      data_criacao DATETIME,
+                      status TEXT DEFAULT 'PENDENTE',
+                      FOREIGN KEY (cliente_id) REFERENCES clientes (codigo_cliente))''')   
 
+    #Tabela de itens da bag
+    cursor.execute('''CREATE TABLE IF NOT EXISTS itens_bag (
+                      id INTEGER PRIMARY KEY AUTOINCREMENT,
+                      bag_id INTEGER,
+                      produto_id INTEGER,
+                      status TEXT DEFAULT 'PENDENTE',
+                      FOREIGN KEY (bag_id) REFERENCES bags (id),
+                      FOREIGN KEY (produto_id) REFERENCES produtos (id))''')
         
     conn.commit()
     conn.close()
