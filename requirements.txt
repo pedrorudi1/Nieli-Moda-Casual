@@ -1,5 +1,13 @@
-pillow==10.2.0  # Para manipulação de imagens (PIL/ImageTk)
-pywhatkit==5.4  # Para envio de mensagens WhatsApp
-pyautogui==0.9.54  # Dependência do pywhatkit
-wikipedia==1.4.0  # Dependência do pywhatkit
-requests==2.31.0  # Dependência do pywhatkit
+# Core dependencies
+pillow==10.2.0  # Required for GUI image handling (PIL/ImageTk)
+sqlite3  # Built-in, for database operations
+
+# WhatsApp messaging dependencies
+pywhatkit==5.4  # For WhatsApp messaging
+pyautogui==0.9.54  # Required by pywhatkit for GUI automation
+wikipedia==1.4.0  # Required by pywhatkit
+requests==2.31.0  # Required by pywhatkit for HTTP requests
+
+# GUI dependencies
+tkinter  # Built-in, for GUI framework
+ttk  # Built-in, part of tkinter for themed widgets
