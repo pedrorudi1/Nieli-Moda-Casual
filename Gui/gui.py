@@ -3,6 +3,7 @@ from Clientes import abrir_cadastro_clientes
 from Produtos import abrir_cadastro_produtos
 from Vendas import abrir_cadastro_vendas
 from ContasAReceber import abrir_contas_a_receber
+from Dashboard import abrir_dashboard
 
     
 App = Tk()
@@ -33,7 +34,7 @@ BtnContasAReceber = Button(App, text='Contas a Receber', image=FotoContasARecebe
 BtnContasAReceber.place(x=52.0, y=380.0)
 BtnPromocoes = Button(App, text='Promoções', image=FotoPromocoes)
 BtnPromocoes.place(x=52.0, y=480.0)
-BtnDashboard = Button(App, text='Dashboard', image=FotoRelatorios)
+BtnDashboard = Button(App, text='Dashboard', image=FotoRelatorios, command=abrir_dashboard, font=("Arial", 12))
 BtnDashboard.place(x=52.0, y=580.0)
 
 App.resizable(False, False)
