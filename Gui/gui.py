@@ -7,6 +7,7 @@ from ContasAReceber import abrir_contas_a_receber
     
 App = Tk()
 App.title("Niéli Moda Casual")
+App.iconbitmap(r"Assets/iconbitmap.ico")
 App.geometry("1200x740")
 App.configure(bg = "#F8EBFF")
 
