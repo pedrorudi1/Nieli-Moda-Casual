@@ -1,3 +1,4 @@
+from Database import database
 from tkinter import Tk, Canvas, Entry, Button, PhotoImage, ttk, messagebox, Toplevel, Label, Frame, StringVar, END, LEFT, RIGHT, BOTH, Text
 from Clientes import abrir_cadastro_clientes
 from Produtos import abrir_cadastro_produtos
@@ -44,6 +45,7 @@ BtnDashboard.place(x=52.0, y=640.0)
 
 
 App.resizable(False, False)
+database.criar_banco_dados()
 
 try:
     import pyi_splash
