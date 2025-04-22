@@ -5,7 +5,7 @@ def create_connection():
     return conn 
 
 def criar_banco_dados():
-    
+        
     conn = create_connection()
     cursor = conn.cursor()
     
@@ -24,7 +24,9 @@ def criar_banco_dados():
                        tamanho TEXT,
                        preco_custo REAL,
                        preco_venda REAL,
-                       quantidade INTEGER)''')
+                       quantidade INTEGER,
+                       promocao INTEGER DEFAULT 0,
+                       preco_promocional REAL)''')
     
     # Tabela de vendas
     cursor.execute('''CREATE TABLE IF NOT EXISTS vendas

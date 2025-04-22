@@ -115,11 +115,30 @@ def atualizar_combo_clientes():
 def atualizar_combo_produtos():
     conn = database.create_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, tipo, cor, tamanho, preco_venda FROM produtos WHERE quantidade > 0")
+    
+    # Modificar query para incluir informações de promoção
+    cursor.execute("""
+        SELECT id, tipo, cor, tamanho, preco_venda, promocao, preco_promocional 
+        FROM produtos 
+        WHERE quantidade > 0
+    """)
+    
     produtos = cursor.fetchall()
     conn.close()
     
-    combo_produtos['values'] = [f"{p[0]} - {p[1]} {p[2]} {p[3]} (R${p[4]:.2f})" for p in produtos]
+    # Atualizar formato de exibição para mostrar preço promocional quando existir
+    valores_combo = []
+    for p in produtos:
+        id_, tipo, cor, tamanho, preco_normal, em_promocao, preco_promo = p
+        if em_promocao and preco_promo:
+            preco_exibir = preco_promo
+            descricao = f"{id_} - {tipo} {cor} {tamanho} (PROMOÇÃO: R${preco_exibir:.2f})"
+        else:
+            preco_exibir = preco_normal
+            descricao = f"{id_} - {tipo} {cor} {tamanho} (R${preco_exibir:.2f})"
+        valores_combo.append(descricao)
+    
+    combo_produtos['values'] = valores_combo
 
 def atualizar_estoque_disponivel(event):
     if not combo_produtos.get():
@@ -155,16 +174,36 @@ def adicionar_item_venda():
     
     conn = database.create_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT quantidade, preco_venda FROM produtos WHERE id = ?", (produto_id,))
-    estoque, preco = cursor.fetchone()
-    conn.close()
+    
+    # Modificar a query para verificar preço promocional
+    cursor.execute("""
+        SELECT quantidade, preco_venda, promocao, preco_promocional 
+        FROM produtos 
+        WHERE id = ?
+    """, (produto_id,))
+    
+    produto = cursor.fetchone()
+    if not produto:
+        conn.close()
+        return
+        
+    estoque, preco_normal, em_promocao, preco_promocional = produto
+    
+    # Usar preço promocional se disponível
+    preco = preco_promocional if em_promocao and preco_promocional else preco_normal
 
     if quantidade > estoque:
         gui.messagebox.showerror("Erro", "Quantidade maior que o estoque disponível")
+        conn.close()
         return
 
     valor_total = quantidade * preco
     produto_info = combo_produtos.get().split('-')[1].strip()
+    
+    # Adicionar indicador de promoção ao nome do produto se aplicável
+    if em_promocao and preco_promocional:
+        produto_info += " (PROMOÇÃO)"
+    
     tree_itens.insert("", "end", values=(produto_info, quantidade, f"R${preco:.2f}", f"R${valor_total:.2f}", produto_id))
     entry_quantidade.delete(0, 'end')
     
@@ -174,6 +213,8 @@ def adicionar_item_venda():
     lbl_valor_calculado.config(text=f"R$ {valor_calculado:.2f}")
     entry_valor_final.delete(0, 'end')
     entry_valor_final.insert(0, f"{valor_calculado:.2f}")
+
+    conn.close()
 
 def finalizar_venda(tree_itens):
     if not combo_clientes.get() or len(tree_itens.get_children()) == 0:

@@ -3,6 +3,7 @@ from Clientes import abrir_cadastro_clientes
 from Produtos import abrir_cadastro_produtos
 from Vendas import abrir_cadastro_vendas
 from ContasAReceber import abrir_contas_a_receber
+from Promocoes import abrir_promocoes
 from Dashboard import abrir_dashboard
 
     
@@ -32,7 +33,7 @@ BtnVendas = Button(App, text='Vendas', image=FotoVendas, command=abrir_cadastro_
 BtnVendas.place(x=52.0, y=280.0)
 BtnContasAReceber = Button(App, text='Contas a Receber', image=FotoContasAReceber, command=abrir_contas_a_receber, font=("Arial", 12))
 BtnContasAReceber.place(x=52.0, y=380.0)
-BtnPromocoes = Button(App, text='Promoções', image=FotoPromocoes)
+BtnPromocoes = Button(App, text='Promoções', image=FotoPromocoes, command=abrir_promocoes, font=("Arial", 12))
 BtnPromocoes.place(x=52.0, y=480.0)
 BtnDashboard = Button(App, text='Dashboard', image=FotoRelatorios, command=abrir_dashboard, font=("Arial", 12))
 BtnDashboard.place(x=52.0, y=580.0)
