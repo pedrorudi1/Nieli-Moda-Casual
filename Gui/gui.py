@@ -9,6 +9,8 @@ from Dashboard import abrir_dashboard
 from Bags import abrir_bags
 
     
+database.criar_banco_dados()
+
 App = Tk()
 App.title("Niéli Moda Casual")
 App.iconbitmap(r"Assets/iconbitmap.ico")
@@ -45,7 +47,6 @@ BtnDashboard.place(x=52.0, y=640.0)
 
 
 App.resizable(False, False)
-database.criar_banco_dados()
 
 try:
     import pyi_splash
