@@ -624,7 +624,7 @@ def atualizar_lista_cobrancas(tree):
     cursor.execute("""
         SELECT DISTINCT 
             c.nome, 
-            c.telefone,
+            CAST(c.telefone AS TEXT) as telefone,
             (v.valor_total - COALESCE(SUM(p.valor_pago), 0)) as valor_pendente
         FROM vendas v
         JOIN clientes c ON v.cliente_id = c.codigo_cliente
@@ -651,7 +651,7 @@ def enviar_cobranca(tree, mensagem):
 
     for cliente in selecionados:
         nome = cliente[1]
-        telefone = cliente[2].replace('(', '').replace(')', '').replace('-', '').replace(' ', '')
+        telefone = str(cliente[2]).replace('(', '').replace(')', '').replace('-', '').replace(' ', '')
         valor = cliente[3]
         
         msg = mensagem.format(cliente=nome, valor=valor)
