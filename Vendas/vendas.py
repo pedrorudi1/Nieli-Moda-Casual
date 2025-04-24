@@ -4,9 +4,11 @@ from tkinter import ttk
 import datetime
 
 def abrir_cadastro_vendas():
-    global entry_cliente, entry_produto, entry_quantidade, tree_vendas, combo_clientes
-    global combo_produtos, tree_itens, lbl_estoque, lbl_valor_calculado, entry_valor_final
+    global entry_cliente_search, entry_produto_search, entry_quantidade, tree_vendas
+    global list_clientes, list_produtos, tree_itens, lbl_estoque, lbl_valor_calculado, entry_valor_final
+    global frame_pesquisa_cliente_window, frame_pesquisa_produto_window
 
+    
     gui.canvas.delete("all")
     gui.canvas.create_image(0, 0, image=gui.FotoBG, anchor="nw")
     
@@ -16,18 +18,42 @@ def abrir_cadastro_vendas():
     frame_selecao = ttk.Frame(gui.App)
     gui.canvas.create_window(700, 150, window=frame_selecao)
 
-    # Seleção de Cliente
-    ttk.Label(frame_selecao, text="Cliente:").grid(row=0, column=0, padx=5, pady=5)
-    combo_clientes = ttk.Combobox(frame_selecao, width=40)
-    combo_clientes.grid(row=0, column=1, padx=5, pady=5)
-    atualizar_combo_clientes()
+    # Pesquisa de Cliente
+    ttk.Label(frame_selecao, text="Buscar Cliente:").grid(row=0, column=0, padx=5, pady=5)
+    entry_cliente_search = ttk.Entry(frame_selecao, width=40)
+    entry_cliente_search.grid(row=0, column=1, padx=5, pady=5)
+    entry_cliente_search.bind('<Return>', pesquisar_clientes)
+    
+    # Frame de pesquisa para clientes
+    frame_pesquisa_cliente = ttk.Frame(gui.App)
+    frame_pesquisa_cliente_window = gui.canvas.create_window(700, 170, window=frame_pesquisa_cliente, state='hidden')
+    
+    # Lista de Clientes
+    list_clientes = ttk.Treeview(frame_pesquisa_cliente, columns=("ID", "Nome"), show="headings", height=4)
+    list_clientes.heading("ID", text="ID")
+    list_clientes.heading("Nome", text="Nome")
+    list_clientes.bind('<<TreeviewSelect>>', cliente_selecionado)
 
-    # Seleção de Produto
-    ttk.Label(frame_selecao, text="Produto:").grid(row=1, column=0, padx=5, pady=5)
-    combo_produtos = ttk.Combobox(frame_selecao, width=40)
-    combo_produtos.grid(row=1, column=1, padx=5, pady=5)
-    combo_produtos.bind('<<ComboboxSelected>>', atualizar_estoque_disponivel)
-    atualizar_combo_produtos()
+    # Pesquisa de Produto
+    ttk.Label(frame_selecao, text="Buscar Produto:").grid(row=1, column=0, padx=5, pady=5)
+    entry_produto_search = ttk.Entry(frame_selecao, width=40)
+    entry_produto_search.grid(row=1, column=1, padx=5, pady=5)
+    entry_produto_search.bind('<Return>', pesquisar_produtos)
+
+    # Frame de pesquisa para produtos
+    frame_pesquisa_produto = ttk.Frame(gui.App)
+    frame_pesquisa_produto_window = gui.canvas.create_window(700, 200, window=frame_pesquisa_produto, state='hidden')
+    
+    # Lista de Produtos
+    list_produtos = ttk.Treeview(frame_pesquisa_produto, 
+                                columns=("ID", "Descrição", "Preço"), 
+                                show="headings", 
+                                height=4)
+    list_produtos.heading("ID", text="ID")
+    list_produtos.heading("Descrição", text="Descrição")
+    list_produtos.heading("Preço", text="Preço")
+    list_produtos.bind('<<TreeviewSelect>>', produto_selecionado)
+
 
     # Estoque disponível
     lbl_estoque = ttk.Label(frame_selecao, text="Em estoque: -")
@@ -103,62 +129,124 @@ def abrir_cadastro_vendas():
     tree_itens.bind("<Delete>", del_para_remover_item_venda)
     tree_vendas.bind("<Delete>", del_para_excluir_venda)
 
-def atualizar_combo_clientes():
+def pesquisar_clientes(event=None):
+    termo_busca = entry_cliente_search.get().strip().lower()
+    
+    # Limpar lista atual
+    for item in list_clientes.get_children():
+        list_clientes.delete(item)
+    
+    # Se o campo estiver vazio, esconde a lista e retorna
+    if not termo_busca:
+        list_clientes.pack_forget()
+        gui.canvas.itemconfig(frame_pesquisa_cliente_window, state='hidden')
+        return
+    
+    # Esconder frame de produtos se estiver visível
+    gui.canvas.itemconfig(frame_pesquisa_produto_window, state='hidden')
+    
+    # Mostrar frame de pesquisa de clientes
+    gui.canvas.itemconfig(frame_pesquisa_cliente_window, state='normal')
+    
+    # Exibir a lista de clientes
+    list_clientes.pack(padx=5, pady=5)
+    
     conn = database.create_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT codigo_cliente, nome FROM clientes")
+    
+    # Busca com LIKE para encontrar correspondências parciais
+    cursor.execute("""
+        SELECT codigo_cliente, nome 
+        FROM clientes 
+        WHERE LOWER(nome) LIKE ? 
+        ORDER BY nome
+    """, (f"%{termo_busca}%",))
+    
     clientes = cursor.fetchall()
     conn.close()
     
-    combo_clientes['values'] = [f"{c[0]} - {c[1]}" for c in clientes]
+    for cliente in clientes:
+        list_clientes.insert("", "end", values=(cliente[0], cliente[1]))
 
-def atualizar_combo_produtos():
+def pesquisar_produtos(event=None):
+    termo_busca = entry_produto_search.get().strip().lower()
+    
+    # Limpar lista atual
+    for item in list_produtos.get_children():
+        list_produtos.delete(item)
+    
+    # Se o campo estiver vazio, esconde a lista e retorna
+    if not termo_busca:
+        list_produtos.pack_forget()
+        gui.canvas.itemconfig(frame_pesquisa_produto_window, state='hidden')
+        return
+    
+    # Esconder frame de clientes se estiver visível
+    gui.canvas.itemconfig(frame_pesquisa_cliente_window, state='hidden')
+    
+    # Mostrar frame de pesquisa de produtos
+    gui.canvas.itemconfig(frame_pesquisa_produto_window, state='normal')
+    
+    # Exibir a lista de produtos
+    list_produtos.pack(padx=5, pady=5)
+    
     conn = database.create_connection()
     cursor = conn.cursor()
     
-    # Modificar query para incluir informações de promoção
+    # Busca produtos com quantidade maior que 0 no estoque
     cursor.execute("""
-        SELECT id, descricao, detalhe, tamanho, preco_venda, promocao, preco_promocional 
+        SELECT id, descricao, detalhe, tamanho, preco_venda, promocao, preco_promocional, quantidade
         FROM produtos 
-        WHERE quantidade > 0
-    """)
+        WHERE (LOWER(descricao) LIKE ? OR LOWER(detalhe) LIKE ?)
+        AND quantidade > 0
+        ORDER BY descricao
+    """, (f"%{termo_busca}%", f"%{termo_busca}%"))
     
     produtos = cursor.fetchall()
     conn.close()
     
-    # Atualizar formato de exibição para mostrar preço promocional quando existir
-    valores_combo = []
-    for p in produtos:
-        id_, descricao, detalhe, tamanho, preco_normal, em_promocao, preco_promo = p
-        if em_promocao and preco_promo:
-            preco_exibir = preco_promo
-            descricao = f"{id_} - {descricao} {detalhe} {tamanho} (PROMOÇÃO: R${preco_exibir:.2f})"
-        else:
-            preco_exibir = preco_normal
-            descricao = f"{id_} - {descricao} {detalhe} {tamanho} (R${preco_exibir:.2f})"
-        valores_combo.append(descricao)
-    
-    combo_produtos['values'] = valores_combo
+    for produto in produtos:
+        id_, desc, detalhe, tamanho, preco_normal, em_promocao, preco_promo, quantidade = produto
+        
+        # Verificar quantidade disponível considerando itens no carrinho
+        quantidade_no_carrinho = sum(
+            int(tree_itens.item(item)["values"][1])
+            for item in tree_itens.get_children()
+            if tree_itens.item(item)["values"][4] == id_
+        )
+        
+        quantidade_disponivel = quantidade - quantidade_no_carrinho
+        
+        # Só exibir produtos com estoque disponível
+        if quantidade_disponivel > 0:
+            descricao = f"{desc} {detalhe} {tamanho}"
+            preco = preco_promo if em_promocao and preco_promo else preco_normal
+            preco_str = f"R${preco:.2f}" + (" (PROMOÇÃO)" if em_promocao and preco_promo else "")
+            list_produtos.insert("", "end", values=(id_, descricao, preco_str))
 
-def atualizar_estoque_disponivel(event):
-    if not combo_produtos.get():
-        lbl_estoque.config(text="Estoque disponível: -")
-        return
-        
-    try:
-        produto_id = int(combo_produtos.get().split('-')[0].strip())
-        conn = database.create_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT quantidade FROM produtos WHERE id = ?", (produto_id,))
-        quantidade = cursor.fetchone()[0]
-        conn.close()
-        
-        lbl_estoque.config(text=f"Estoque disponível: {quantidade}")
-    except:
-        lbl_estoque.config(text="Estoque disponível: -")
+def cliente_selecionado(event=None):
+    selected = list_clientes.selection()
+    if selected:
+        cliente = list_clientes.item(selected[0])["values"]
+        list_clientes.pack_forget()
+        entry_cliente_search.delete(0, 'end')
+        entry_cliente_search.insert(0, cliente[1])
+        gui.canvas.itemconfig(frame_pesquisa_cliente_window, state='hidden')
+
+def produto_selecionado(event=None):
+    selected = list_produtos.selection()
+    if selected:
+        produto = list_produtos.item(selected[0])["values"]
+        list_produtos.pack_forget()
+        entry_produto_search.delete(0, 'end')
+        entry_produto_search.insert(0, produto[1])
+        gui.canvas.itemconfig(frame_pesquisa_produto_window, state='hidden')
+        atualizar_estoque_disponivel()
 
 def adicionar_item_venda():
-    if not combo_produtos.get() or not entry_quantidade.get():
+    selected_produtos = list_produtos.selection()
+    atualizar_estoque_disponivel()
+    if not selected_produtos or not entry_quantidade.get():
         gui.messagebox.showerror("Erro", "Selecione um produto e informe a quantidade")
         return
 
@@ -170,12 +258,13 @@ def adicionar_item_venda():
         gui.messagebox.showerror("Erro", "Quantidade inválida")
         return
 
-    produto_id = int(combo_produtos.get().split('-')[0].strip())
+    produto_values = list_produtos.item(selected_produtos[0])["values"]
+    produto_id = produto_values[0]
+    produto_info = produto_values[1]
     
     conn = database.create_connection()
     cursor = conn.cursor()
     
-    # Modificar a query para verificar preço promocional
     cursor.execute("""
         SELECT quantidade, preco_venda, promocao, preco_promocional 
         FROM produtos 
@@ -189,35 +278,47 @@ def adicionar_item_venda():
         
     estoque, preco_normal, em_promocao, preco_promocional = produto
     
-    # Usar preço promocional se disponível
-    preco = preco_promocional if em_promocao and preco_promocional else preco_normal
-
-    if quantidade > estoque:
+    # Verificar quantidade disponível considerando itens já no carrinho
+    estoque_atual = estoque - sum(
+        int(tree_itens.item(item)["values"][1]) 
+        for item in tree_itens.get_children()
+        if tree_itens.item(item)["values"][4] == produto_id
+    )
+    
+    if quantidade > estoque_atual:
         gui.messagebox.showerror("Erro", "Quantidade maior que o estoque disponível")
         conn.close()
         return
 
+    preco = preco_promocional if em_promocao and preco_promocional else preco_normal
     valor_total = quantidade * preco
-    produto_info = combo_produtos.get().split('-')[1].strip()
     
     # Adicionar indicador de promoção ao nome do produto se aplicável
     if em_promocao and preco_promocional:
         produto_info += " (PROMOÇÃO)"
     
     tree_itens.insert("", "end", values=(produto_info, quantidade, f"R${preco:.2f}", f"R${valor_total:.2f}", produto_id))
-    entry_quantidade.delete(0, 'end')
     
-    # Update calculated value
+    # Limpar campos após adicionar
+    entry_quantidade.delete(0, 'end')
+    entry_produto_search.delete(0, 'end')
+    
+    # Atualizar valor calculado
     valor_calculado = sum(float(tree_itens.item(item)["values"][3].replace("R$", "")) 
                          for item in tree_itens.get_children())
     lbl_valor_calculado.config(text=f"R$ {valor_calculado:.2f}")
     entry_valor_final.delete(0, 'end')
     entry_valor_final.insert(0, f"{valor_calculado:.2f}")
+    
+    # Ocultar lista de produtos
+    list_produtos.pack_forget()
+    gui.canvas.itemconfig(frame_pesquisa_produto_window, state='hidden')
 
     conn.close()
 
 def finalizar_venda(tree_itens):
-    if not combo_clientes.get() or len(tree_itens.get_children()) == 0:
+    selected_clients = list_clientes.selection()
+    if not selected_clients or len(tree_itens.get_children()) == 0:
         gui.messagebox.showerror("Erro", "Selecione um cliente e adicione itens à venda")
         return
 
@@ -227,7 +328,7 @@ def finalizar_venda(tree_itens):
         gui.messagebox.showerror("Erro", "Valor final inválido")
         return
 
-    cliente_id = int(combo_clientes.get().split('-')[0].strip())
+    cliente_id = list_clientes.item(selected_clients[0])["values"][0]
     
     conn = database.create_connection()
     cursor = conn.cursor()
@@ -274,7 +375,6 @@ def finalizar_venda(tree_itens):
         tree_itens.delete(item)
     
     atualizar_historico_vendas()
-    atualizar_combo_produtos()
     abrir_cadastro_vendas()
 
 def atualizar_historico_vendas():
@@ -346,7 +446,6 @@ def excluir_venda():
         
         # Atualizar a interface
         atualizar_historico_vendas()
-        atualizar_combo_produtos()
         
     except Exception as e:
         conn.rollback()
@@ -362,6 +461,38 @@ def remover_item_venda():
         
     if gui.messagebox.askyesno("Confirmar", "Deseja remover este item da venda?"):
         tree_itens.delete(selected_item)
+        # Atualizar valor calculado após remoção
+        valor_calculado = sum(float(tree_itens.item(item)["values"][3].replace("R$", "")) 
+                            for item in tree_itens.get_children())
+        lbl_valor_calculado.config(text=f"R$ {valor_calculado:.2f}")
+        entry_valor_final.delete(0, 'end')
+        entry_valor_final.insert(0, f"{valor_calculado:.2f}")
+
+def atualizar_estoque_disponivel(event=None):
+    selected_items = list_produtos.selection()
+    if not selected_items:
+        lbl_estoque.config(text="Estoque disponível: -")
+        return
+        
+    try:
+        produto_id = list_produtos.item(selected_items[0])["values"][0]
+        conn = database.create_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT quantidade FROM produtos WHERE id = ?", (produto_id,))
+        quantidade = cursor.fetchone()[0]
+        conn.close()
+        
+        # Subtrair quantidade dos itens já no carrinho
+        quantidade_no_carrinho = sum(
+            int(tree_itens.item(item)["values"][1])
+            for item in tree_itens.get_children()
+            if tree_itens.item(item)["values"][4] == produto_id
+        )
+        
+        quantidade_disponivel = quantidade - quantidade_no_carrinho
+        lbl_estoque.config(text=f"Estoque disponível: {quantidade_disponivel}")
+    except:
+        lbl_estoque.config(text="Estoque disponível: -")
 
 def del_para_remover_item_venda(event):
     remover_item_venda()
