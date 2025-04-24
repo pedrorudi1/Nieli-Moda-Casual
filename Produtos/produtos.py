@@ -3,20 +3,20 @@ from Gui import gui
 
 def abrir_cadastro_produtos():
     from Produtos import preencher_campos_produto, cadastrar_produto, atualizar_produto, excluir_produto
-    global tree_produtos, entry_tipo, entry_cor, entry_tamanho, entry_preco_custo, entry_preco_venda, entry_quantidade
+    global tree_produtos, entry_descricao, entry_detalhe, entry_tamanho, entry_preco_custo, entry_preco_venda, entry_quantidade
     
     gui.canvas.delete("all")
     gui.canvas.create_image(0, 0, image=gui.FotoBG, anchor="nw")
 
     gui.canvas.create_text(700, 50, text="Cadastro de Produtos", font=("Arial", 24))
 
-    gui.canvas.create_text(550, 120, text="Tipo:", anchor="e", font=("Arial", 12))
-    entry_tipo = gui.Entry(gui.App, width=40, font=("Arial", 12))
-    gui.canvas.create_window(560, 120, window=entry_tipo, anchor="w")
+    gui.canvas.create_text(550, 120, text="Descrição:", anchor="e", font=("Arial", 12))
+    entry_descricao = gui.Entry(gui.App, width=40, font=("Arial", 12))
+    gui.canvas.create_window(560, 120, window=entry_descricao, anchor="w")
 
-    gui.canvas.create_text(550, 160, text="Cor:", anchor="e", font=("Arial", 12))
-    entry_cor = gui.Entry(gui.App, width=40, font=("Arial", 12))
-    gui.canvas.create_window(560, 160, window=entry_cor, anchor="w")
+    gui.canvas.create_text(550, 160, text="Detalhe:", anchor="e", font=("Arial", 12))
+    entry_detalhe = gui.Entry(gui.App, width=40, font=("Arial", 12))
+    gui.canvas.create_window(560, 160, window=entry_detalhe, anchor="w")
 
     gui.canvas.create_text(550, 200, text="Tamanho:", anchor="e", font=("Arial", 12))
     entry_tamanho = gui.Entry(gui.App, width=40, font=("Arial", 12))
@@ -34,8 +34,8 @@ def abrir_cadastro_produtos():
     entry_quantidade = gui.Entry(gui.App, width=40, font=("Arial", 12))
     gui.canvas.create_window(560, 320, window=entry_quantidade, anchor="w")
 
-    btn_cadastrar = gui.Button(gui.App, text="Cadastrar", command=lambda: cadastrar_produto (entry_tipo,
-                                                                                            entry_cor,
+    btn_cadastrar = gui.Button(gui.App, text="Cadastrar", command=lambda: cadastrar_produto (entry_descricao,
+                                                                                            entry_detalhe,
                                                                                             entry_tamanho,
                                                                                             entry_preco_custo,
                                                                                             entry_preco_venda,
@@ -59,13 +59,13 @@ def abrir_cadastro_produtos():
                              fg="white")
     gui.canvas.create_window(850, 360, window=btn_excluir)
 
-    tree_produtos = gui.ttk.Treeview(gui.App, columns=("ID", "Tipo", "Cor", "Tamanho", "Preço Custo", "Preço Venda", "Quantidade"), show="headings")
+    tree_produtos = gui.ttk.Treeview(gui.App, columns=("ID", "Descrição", "Detalhe", "Tamanho", "Preço Custo", "Preço Venda", "Quantidade"), show="headings")
     tree_produtos.column("ID", width=50, minwidth=50, stretch="no")
     tree_produtos.heading("ID", text="ID")
-    tree_produtos.column("Tipo", width=200, minwidth=100, stretch="yes")
-    tree_produtos.heading("Tipo", text="Tipo")
-    tree_produtos.column("Cor", width=100, minwidth=100, stretch="yes")
-    tree_produtos.heading("Cor", text="Cor")
+    tree_produtos.column("Descrição", width=200, minwidth=100, stretch="yes")
+    tree_produtos.heading("Descrição", text="Descrição")
+    tree_produtos.column("Detalhe", width=100, minwidth=100, stretch="yes")
+    tree_produtos.heading("Detalhe", text="Detalhe")
     tree_produtos.column("Tamanho", width=100, minwidth=100, stretch="yes")
     tree_produtos.heading("Tamanho", text="Tamanho")
     tree_produtos.column("Preço Custo", width=100, minwidth=100, stretch="yes")
@@ -81,16 +81,16 @@ def abrir_cadastro_produtos():
 
     atualizar_tabela_produtos(tree_produtos)
 
-def cadastrar_produto(entry_tipo,
-                      entry_cor,
+def cadastrar_produto(entry_descricao,
+                      entry_detalhe,
                       entry_tamanho,
                       entry_preco_custo,
                       entry_preco_venda,
                       entry_quantidade,
                       tree_produtos):
     
-    tipo = entry_tipo.get().strip()
-    cor = entry_cor.get().strip()
+    descricao = entry_descricao.get().strip()
+    detalhe = entry_detalhe.get().strip()
     tamanho = entry_tamanho.get().strip()
     preco_custo = float(entry_preco_custo.get())
     preco_venda = float(entry_preco_venda.get())
@@ -98,21 +98,21 @@ def cadastrar_produto(entry_tipo,
 
     conn = database.create_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO produtos (tipo, cor, tamanho, preco_custo, preco_venda, quantidade) VALUES (?, ?, ?, ?, ?, ?)",
-                   (tipo, cor, tamanho, preco_custo, preco_venda, quantidade))
+    cursor.execute("INSERT INTO produtos (descricao, detalhe, tamanho, preco_custo, preco_venda, quantidade) VALUES (?, ?, ?, ?, ?, ?)",
+                   (descricao, detalhe, tamanho, preco_custo, preco_venda, quantidade))
     novo_id = cursor.lastrowid
     conn.commit()
     conn.close()
 
-    entry_tipo.delete(0, gui.END)
-    entry_cor.delete(0, gui.END)
+    entry_descricao.delete(0, gui.END)
+    entry_detalhe.delete(0, gui.END)
     entry_tamanho.delete(0,gui.END)
     entry_preco_custo.delete(0,gui.END)
     entry_preco_venda.delete(0, gui.END)
     entry_quantidade.delete(0, gui.END)
 
     if 'tree_produtos' in globals() and tree_produtos:
-        tree_produtos.insert("", "end", values=(novo_id, tipo, cor, tamanho, preco_custo, preco_venda, quantidade))
+        tree_produtos.insert("", "end", values=(novo_id, descricao, detalhe, tamanho, preco_custo, preco_venda, quantidade))
     else:
         print("Erro: A tabela de produtos não foi encontrada.")
 
@@ -128,8 +128,8 @@ def atualizar_produto():
     selected_item = selected_item[0]
     id = tree_produtos.item(selected_item)['values'][0]
     
-    novo_tipo = entry_tipo.get().strip()
-    novo_cor = entry_cor.get().strip()
+    novo_descricao = entry_descricao.get().strip()
+    novo_detalhe = entry_detalhe.get().strip()
     novo_tamanho = entry_tamanho.get().strip()
     novo_preco_custo = entry_preco_custo.get().strip()
     novo_preco_venda = entry_preco_venda.get().strip()
@@ -138,8 +138,8 @@ def atualizar_produto():
                
     conn = database.create_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE produtos SET tipo=?, cor=?, tamanho=?, preco_custo=?, preco_venda=?, quantidade=? WHERE id=?",
-        (novo_tipo, novo_cor, novo_tamanho, novo_preco_custo, novo_preco_venda, novo_quantidade, id))
+    cursor.execute("UPDATE produtos SET descricao=?, detalhe=?, tamanho=?, preco_custo=?, preco_venda=?, quantidade=? WHERE id=?",
+        (novo_descricao, novo_detalhe, novo_tamanho, novo_preco_custo, novo_preco_venda, novo_quantidade, id))
     
     conn.commit()
     gui.messagebox.showinfo("Sucesso", "Produto atualizado com sucesso.")
@@ -172,14 +172,14 @@ def preencher_campos_produto(Event):
     if item_selecionado:
         valores = tree_produtos.item(item_selecionado, 'values')
         
-        entry_tipo.delete(0, 'end')
-        entry_cor.delete(0, 'end')
+        entry_descricao.delete(0, 'end')
+        entry_detalhe.delete(0, 'end')
         entry_tamanho.delete(0, 'end')
         entry_preco_custo.delete(0, 'end')
         entry_preco_venda.delete(0, 'end')
         entry_quantidade.delete(0, 'end')
-        entry_tipo.insert(0, valores[1])
-        entry_cor.insert(0, valores[2])
+        entry_descricao.insert(0, valores[1])
+        entry_detalhe.insert(0, valores[2])
         entry_tamanho.insert(0, valores[3])
         entry_preco_custo.insert(0, valores[4])
         entry_preco_venda.insert(0, valores[5])

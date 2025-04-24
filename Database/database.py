@@ -19,19 +19,19 @@ def criar_banco_dados():
     # Tabela de produtos
     cursor.execute('''CREATE TABLE IF NOT EXISTS produtos
                       (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                       tipo TEXT NOT NULL,
-                       cor TEXT,
-                       tamanho TEXT,
-                       preco_custo REAL,
-                       preco_venda REAL,
-                       quantidade INTEGER,
+                       descricao TEXT NOT NULL,
+                       detalhe TEXT NOT NULL,
+                       tamanho TEXT NOT NULL,
+                       preco_custo REAL NOT NULL,
+                       preco_venda REAL NOT NULL,
+                       quantidade INTEGER NOT NULL,
                        promocao INTEGER DEFAULT 0,
                        preco_promocional REAL)''')
     
     # Tabela de vendas
     cursor.execute('''CREATE TABLE IF NOT EXISTS vendas
                       (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                       cliente_id TEXT,
+                       cliente_id INTEGER,
                        valor_total REAL,
                        data_venda TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        FOREIGN KEY (cliente_id) REFERENCES clientes (codigo_cliente))''')

@@ -214,7 +214,7 @@ def abrir_contas_a_receber():
     text_mensagem.pack(pady=5, fill='x')
     
     # Mensagem padrão
-    mensagem_padrao = """Olá {cliente}, 
+    mensagem_padrao = """Olá, {cliente}. 
 Notamos que você possui um valor pendente de R$ {valor} em nossa loja.
 Poderia nos informar quando será possível realizar o pagamento?
 Agradecemos sua atenção!"""
@@ -436,6 +436,7 @@ def usar_credito_disponivel():
         gui.messagebox.showinfo("Sucesso", f"Crédito de R${valor_credito:.2f} utilizado com sucesso!")
         atualizar_lista_vendas()
         atualizar_historico_pagamentos()
+        abrir_contas_a_receber()
         
     except Exception as e:
         gui.messagebox.showerror("Erro", f"Erro ao processar crédito: {str(e)}")
@@ -473,6 +474,7 @@ def registrar_pagamento():
         entry_valor_pago.delete(0, gui.END)
         atualizar_lista_vendas()
         atualizar_historico_pagamentos()
+        abrir_contas_a_receber()
         
     except Exception as e:
         conn.rollback()

@@ -31,20 +31,20 @@ def abrir_promocoes():
 
     # Tabela de produtos em promoção (primeira aba)
     tree_promocoes = ttk.Treeview(tab_produtos, 
-                                 columns=("ID", "Tipo", "Cor", "Tamanho", "Preço Normal", "Preço Promocional"),
+                                 columns=("ID", "Descrição", "Detalhe", "Tamanho", "Preço Normal", "Preço Promocional"),
                                  show="headings", 
                                  height=15)
 
     tree_promocoes.heading("ID", text="ID")
-    tree_promocoes.heading("Tipo", text="Tipo")
-    tree_promocoes.heading("Cor", text="Cor")
+    tree_promocoes.heading("Descrição", text="Descrição")
+    tree_promocoes.heading("Detalhe", text="Detalhe")
     tree_promocoes.heading("Tamanho", text="Tamanho")
     tree_promocoes.heading("Preço Normal", text="Preço Normal")
     tree_promocoes.heading("Preço Promocional", text="Preço Promocional")
 
     tree_promocoes.column("ID", width=50, anchor="center")
-    tree_promocoes.column("Tipo", width=150)
-    tree_promocoes.column("Cor", width=100)
+    tree_promocoes.column("Descrição", width=150)
+    tree_promocoes.column("Detalhe", width=100)
     tree_promocoes.column("Tamanho", width=100)
     tree_promocoes.column("Preço Normal", width=100, anchor="e")
     tree_promocoes.column("Preço Promocional", width=100, anchor="e")
@@ -173,18 +173,18 @@ def carregar_produtos_promocao():
 
     try:
         cursor.execute("""
-            SELECT id, tipo, cor, tamanho, preco_venda, preco_promocional
+            SELECT id, descricao, detalhe, tamanho, preco_venda, preco_promocional
             FROM produtos
             WHERE promocao = 1
-            ORDER BY tipo, cor, tamanho
+            ORDER BY descricao, detalhe, tamanho
         """)
 
         for row in cursor.fetchall():
-            produto_id, tipo, cor, tamanho, preco_normal, preco_promo = row
+            produto_id, descricao, detalhe, tamanho, preco_normal, preco_promo = row
             tree_promocoes.insert("", "end", values=(
                 produto_id,
-                tipo,
-                cor,
+                descricao,
+                detalhe,
                 tamanho,
                 f"R$ {preco_normal:.2f}",
                 f"R$ {preco_promo:.2f}"
@@ -198,7 +198,7 @@ def carregar_produtos_promocao():
 def consultar_produtos():
     conn = database.create_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, tipo, cor, tamanho FROM produtos")
+    cursor.execute("SELECT id, descricao, detalhe, tamanho FROM produtos")
     produtos = cursor.fetchall()
     conn.close()
-    return [f"{id} - {tipo} {cor} {tamanho}" for id, tipo, cor, tamanho in produtos]
+    return [f"{id} - {descricao} {detalhe} {tamanho}" for id, descricao, detalhe, tamanho in produtos]

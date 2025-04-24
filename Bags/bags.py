@@ -32,15 +32,15 @@ def abrir_bags():
     frame_produtos.pack(fill="both", expand=True, padx=10, pady=5)
 
     tree_produtos = ttk.Treeview(frame_produtos, 
-                                columns=("ID", "Tipo", "Cor", "Tamanho", "Preço"), 
+                                columns=("ID", "Descrição", "Detalhe", "Tamanho", "Preço"), 
                                 show="headings", 
                                 height=6)
     
-    for col in ("ID", "Tipo", "Cor", "Tamanho", "Preço"):
+    for col in ("ID", "Descrição", "Detalhe", "Tamanho", "Preço"):
         tree_produtos.heading(col, text=col)
         tree_produtos.column("ID", width=50)
-        tree_produtos.column("Tipo", width=200)
-        tree_produtos.column("Cor", width=100)
+        tree_produtos.column("Descrição", width=200)
+        tree_produtos.column("Detalhe", width=100)
         tree_produtos.column("Tamanho", width=100)
         tree_produtos.column("Preço", width=100)
     
@@ -70,11 +70,11 @@ def abrir_bags():
     frame_selecionados.pack(fill="both", expand=True, padx=10, pady=5)
 
     tree_produtos_selecionados = ttk.Treeview(frame_selecionados, 
-                                             columns=("ID", "Tipo", "Cor", "Tamanho", "Preço"), 
+                                             columns=("ID", "Descrição", "Detalhe", "Tamanho", "Preço"), 
                                              show="headings", 
                                              height=6)
     
-    for col in ("ID", "Tipo", "Cor", "Tamanho", "Preço"):
+    for col in ("ID", "Descrição", "Detalhe", "Tamanho", "Preço"):
         tree_produtos_selecionados.heading(col, text=col)
         tree_produtos_selecionados.column(col, width=100)
     
@@ -127,22 +127,22 @@ def abrir_bags():
 
     # Treeview para itens da bag
     tree_itens_bag = ttk.Treeview(frame_itens_bag,
-                                 columns=("Selecionar", "ID", "Tipo", "Cor", "Tamanho", "Preço", "Status"),
+                                 columns=("Selecionar", "ID", "Descrição", "Detalhe", "Tamanho", "Preço", "Status"),
                                  show="headings",
                                  height=6)
     
     tree_itens_bag.heading("Selecionar", text="")
     tree_itens_bag.heading("ID", text="ID")
-    tree_itens_bag.heading("Tipo", text="Tipo")
-    tree_itens_bag.heading("Cor", text="Cor")
+    tree_itens_bag.heading("Descrição", text="Descrição")
+    tree_itens_bag.heading("Detalhe", text="Detalhe")
     tree_itens_bag.heading("Tamanho", text="Tamanho")
     tree_itens_bag.heading("Preço", text="Preço")
     tree_itens_bag.heading("Status", text="Status")
     
     tree_itens_bag.column("Selecionar", width=30)
     tree_itens_bag.column("ID", width=50)
-    tree_itens_bag.column("Tipo", width=150)
-    tree_itens_bag.column("Cor", width=100)
+    tree_itens_bag.column("Descrição", width=150)
+    tree_itens_bag.column("Detalhe", width=100)
     tree_itens_bag.column("Tamanho", width=100)
     tree_itens_bag.column("Preço", width=100)
     tree_itens_bag.column("Status", width=100)
@@ -192,7 +192,16 @@ def atualizar_itens_bag(bag_id):
     cursor = conn.cursor()
     
     cursor.execute("""
-        SELECT p.id, p.tipo, p.cor, p.tamanho, p.preco_venda, i.status
+        SELECT 
+            p.id, 
+            p.descricao, 
+            p.detalhe, 
+            p.tamanho, 
+            CASE 
+                WHEN p.preco_promocional > 0 THEN p.preco_promocional 
+                ELSE p.preco_venda 
+            END as preco_final,
+            i.status
         FROM itens_bag i
         JOIN produtos p ON i.produto_id = p.id
         WHERE i.bag_id = ?
@@ -216,9 +225,18 @@ def atualizar_lista_bags():
     cursor = conn.cursor()
     
     cursor.execute("""
-        SELECT b.id, c.nome, b.data_criacao, b.status,
-               COUNT(i.id) as qtd_itens,
-               SUM(p.preco_venda) as valor_total
+        SELECT 
+            b.id, 
+            c.nome, 
+            b.data_criacao, 
+            b.status,
+            COUNT(i.id) as qtd_itens,
+            SUM(
+                CASE 
+                    WHEN p.preco_promocional > 0 THEN p.preco_promocional 
+                    ELSE p.preco_venda 
+                END
+            ) as valor_total
         FROM bags b
         JOIN clientes c ON b.cliente_id = c.codigo_cliente
         JOIN itens_bag i ON i.bag_id = b.id
@@ -301,11 +319,25 @@ def cancelar_bag():
     cursor = conn.cursor()
     
     try:
+        # Retornar produtos ao estoque
+        cursor.execute("""
+            UPDATE produtos 
+            SET quantidade = quantidade + 1
+            WHERE id IN (
+                SELECT produto_id 
+                FROM itens_bag 
+                WHERE bag_id = ? AND status != 'VENDIDO'
+            )
+        """, (bag_id,))
+
+        # Atualizar status da bag e seus itens
         cursor.execute("UPDATE bags SET status = 'CANCELADA' WHERE id = ?", (bag_id,))
-        cursor.execute("UPDATE itens_bag SET status = 'CANCELADO' WHERE bag_id = ?", (bag_id,))
+        cursor.execute("UPDATE itens_bag SET status = 'CANCELADO' WHERE bag_id = ? AND status != 'VENDIDO'", (bag_id,))
+        
         conn.commit()
         messagebox.showinfo("Sucesso", "Bag cancelada com sucesso!")
         atualizar_lista_bags()
+        atualizar_lista_produtos()  # Atualizar lista de produtos para mostrar estoque atualizado
         
     except Exception as e:
         conn.rollback()
@@ -326,12 +358,20 @@ def atualizar_lista_produtos():
     conn = database.create_connection()
     cursor = conn.cursor()
     
-    # Modificar query para mostrar apenas produtos com quantidade > 0
     cursor.execute("""
-        SELECT id, tipo, cor, tamanho, preco_venda, quantidade 
+        SELECT 
+            id, 
+            descricao, 
+            detalhe, 
+            tamanho,
+            CASE 
+                WHEN preco_promocional > 0 THEN preco_promocional 
+                ELSE preco_venda 
+            END as preco_final,
+            quantidade 
         FROM produtos 
         WHERE quantidade > 0 
-        ORDER BY tipo, cor, tamanho
+        ORDER BY descricao, detalhe, tamanho
     """)
     produtos = cursor.fetchall()
     conn.close()
@@ -344,10 +384,10 @@ def atualizar_lista_produtos():
     for produto in produtos:
         tree_produtos.insert("", "end", values=(
             produto[0],      # ID
-            produto[1],      # Tipo
-            produto[2],      # Cor
+            produto[1],      # Descrição
+            produto[2],      # Detalhe
             produto[3],      # Tamanho
-            f"R$ {produto[4]:.2f}"  # Preço
+            f"R$ {produto[4]:.2f}"  # Preço (normal ou promocional)
         ))
 
 def adicionar_produto_bag():
@@ -445,6 +485,7 @@ def finalizar_bag():
         messagebox.showerror("Erro", f"Erro ao registrar bag: {str(e)}")
     finally:
         conn.close()
+        abrir_bags()
 
 def vender_itens_selecionados():
     selected = tree_todas_bags.selection()
@@ -474,7 +515,22 @@ def vender_itens_selecionados():
         cliente_id = cursor.fetchone()[0]
         
         # Criar nova venda
-        valor_total = sum(float(item[4].replace('R$ ', '')) for item in itens_selecionados)
+        valor_total = 0
+        for item in itens_selecionados:
+            produto_id = item[0]
+            # Buscar preço atual (normal ou promocional)
+            cursor.execute("""
+                SELECT 
+                    CASE 
+                        WHEN preco_promocional > 0 THEN preco_promocional 
+                        ELSE preco_venda 
+                    END as preco_final
+                FROM produtos 
+                WHERE id = ?
+            """, (produto_id,))
+            preco = cursor.fetchone()[0]
+            valor_total += preco
+
         cursor.execute("""
             INSERT INTO vendas (cliente_id, valor_total, data_venda)
             VALUES (?, ?, datetime('now', 'localtime'))
@@ -485,9 +541,18 @@ def vender_itens_selecionados():
         # Inserir itens vendidos
         for item in itens_selecionados:
             produto_id = item[0]
-            valor_unitario = float(item[4].replace('R$ ', ''))
+            # Buscar preço atual novamente para cada item
+            cursor.execute("""
+                SELECT 
+                    CASE 
+                        WHEN preco_promocional > 0 THEN preco_promocional 
+                        ELSE preco_venda 
+                    END as preco_final
+                FROM produtos 
+                WHERE id = ?
+            """, (produto_id,))
+            valor_unitario = cursor.fetchone()[0]
             
-            # Inserir item na venda
             cursor.execute("""
                 INSERT INTO itens_venda (venda_id, produto_id, quantidade, valor_unitario)
                 VALUES (?, ?, 1, ?)

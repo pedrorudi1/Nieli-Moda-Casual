@@ -118,7 +118,7 @@ def atualizar_combo_produtos():
     
     # Modificar query para incluir informações de promoção
     cursor.execute("""
-        SELECT id, tipo, cor, tamanho, preco_venda, promocao, preco_promocional 
+        SELECT id, descricao, detalhe, tamanho, preco_venda, promocao, preco_promocional 
         FROM produtos 
         WHERE quantidade > 0
     """)
@@ -129,13 +129,13 @@ def atualizar_combo_produtos():
     # Atualizar formato de exibição para mostrar preço promocional quando existir
     valores_combo = []
     for p in produtos:
-        id_, tipo, cor, tamanho, preco_normal, em_promocao, preco_promo = p
+        id_, descricao, detalhe, tamanho, preco_normal, em_promocao, preco_promo = p
         if em_promocao and preco_promo:
             preco_exibir = preco_promo
-            descricao = f"{id_} - {tipo} {cor} {tamanho} (PROMOÇÃO: R${preco_exibir:.2f})"
+            descricao = f"{id_} - {descricao} {detalhe} {tamanho} (PROMOÇÃO: R${preco_exibir:.2f})"
         else:
             preco_exibir = preco_normal
-            descricao = f"{id_} - {tipo} {cor} {tamanho} (R${preco_exibir:.2f})"
+            descricao = f"{id_} - {descricao} {detalhe} {tamanho} (R${preco_exibir:.2f})"
         valores_combo.append(descricao)
     
     combo_produtos['values'] = valores_combo
@@ -275,6 +275,7 @@ def finalizar_venda(tree_itens):
     
     atualizar_historico_vendas()
     atualizar_combo_produtos()
+    abrir_cadastro_vendas()
 
 def atualizar_historico_vendas():
     conn = database.create_connection()
