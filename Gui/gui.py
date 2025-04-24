@@ -15,7 +15,7 @@ App = Tk()
 App.title("Niéli Moda Casual")
 App.iconbitmap(r"Assets/iconbitmap.ico")
 App.geometry("1200x740")
-App.configure(bg = "#F8EBFF")
+App.configure(bg="#E4E1DC")
 
 FotoBG = PhotoImage(file=r"Assets/Background.png")
 FotoClientes = PhotoImage(file=r"Assets/Clientes.png")
@@ -26,9 +26,10 @@ FotoContasAReceber = PhotoImage(file=r"Assets/ContasAReceber.png")
 FotoPromocoes = PhotoImage(file=r"Assets/Promocoes.png")
 FotoBags = PhotoImage(file=r"Assets/Bags.png")
 
-canvas = Canvas(App, width=1200, height=740)
+canvas = Canvas(App, width=1200, height=740, bg="#E4E1DC")
 canvas.pack(fill="both", expand=True)
 canvas.create_image(0, 0, image=FotoBG, anchor="nw")
+
 
 BtnClientes = Button(App, text='Clientes', image=FotoClientes, command=abrir_cadastro_clientes, font=("Arial", 12))
 BtnClientes.place(x=52.0, y=40.0)
@@ -46,7 +47,7 @@ BtnDashboard = Button(App, text='Dashboard', image=FotoRelatorios, command=abrir
 BtnDashboard.place(x=52.0, y=640.0)
 
 
-App.resizable(False, False)
+App.resizable(True, True)
 
 try:
     import pyi_splash
