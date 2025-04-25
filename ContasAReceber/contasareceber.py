@@ -270,7 +270,7 @@ Agradecemos sua atenção!"""
     tree_vendas.bind("<<TreeviewSelect>>", lambda e: on_select_venda())
     tree_cobranca.bind("<Button-1>", toggle_checkbox)
     entry_pesquisa.bind('<Enter>', filtrar_clientes)
-    tree_resultados.bind('<Double-1>', selecionar_cliente)
+    tree_resultados.bind('<Button-1>', selecionar_cliente)
     tree_resultados.bind('<Return>', selecionar_cliente)
     atualizar_lista_vendas()
     atualizar_lista_creditos()
@@ -605,12 +605,9 @@ def filtrar_clientes(*args):
 def selecionar_cliente(event):
     selection = tree_resultados.selection()
     if selection:
-        # Get the selected item's values
         selected_values = tree_resultados.item(selection[0])['values']
-        # Insert the selected client's name into the search entry
         entry_pesquisa.delete(0, 'end')
         entry_pesquisa.insert(0, selected_values[0])
-        # Hide the results frame
         frame_resultados.grid_remove()
 
 
