@@ -148,7 +148,7 @@ def abrir_contas_a_receber():
     # Frame para resultados da pesquisa
     frame_resultados = gui.ttk.Frame(frame_credito)
     frame_resultados.grid(row=1, column=0, columnspan=2, pady=(0, 10))
-    frame_resultados.grid_remove()  # Initially hidden
+    frame_resultados.grid_remove() 
 
     # Tabela de resultados da pesquisa
     tree_resultados = gui.ttk.Treeview(frame_resultados,
@@ -166,8 +166,6 @@ def abrir_contas_a_receber():
 
     entry_pesquisa.bind('<Return>', filtrar_clientes)
 
-    # Resto dos widgets do frame_credito
-     
     gui.ttk.Label(frame_credito, text="Valor: R$").grid(row=2, column=0, padx=5, pady=5)
     entry_valor_credito = gui.ttk.Entry(frame_credito)
     entry_valor_credito.grid(row=2, column=1, padx=5, pady=5)
@@ -606,14 +604,17 @@ def filtrar_clientes(*args):
 def selecionar_cliente(event):
     selection = tree_resultados.selection()
     if selection:
-        tree_resultados.pack_forget()
+        # Get the selected item's values
+        selected_values = tree_resultados.item(selection[0])['values']
+        # Insert the selected client's name into the search entry
         entry_pesquisa.delete(0, 'end')
-        entry_pesquisa.insert(0, tree_resultados[1])
+        entry_pesquisa.insert(0, selected_values[0])
+        # Hide the results frame
         frame_resultados.grid_remove()
 
 
 def registrar_credito(cliente, valor, observacao):
-    global entry_valor_credito, entry_obs_credito  # Declarar uso das variáveis globais
+    global entry_valor_credito, entry_obs_credito
     
     if not cliente or not valor:
         gui.messagebox.showerror("Erro", "Cliente e valor são obrigatórios")
