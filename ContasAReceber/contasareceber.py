@@ -601,6 +601,7 @@ def filtrar_clientes(*args):
     else:
         frame_resultados.grid_remove()
 
+
 def selecionar_cliente(event):
     selection = tree_resultados.selection()
     if selection:
