@@ -8,6 +8,7 @@ def abrir_contas_a_receber():
     global tree_vendas, entry_valor_pago, selected_venda, tree_pagamentos, tree_creditos
     global entry_valor_credito, entry_obs_credito
     global combo_clientes, btn_usar_credito, lbl_credito_disponivel, tree_cobranca
+    global frame_resultados, tree_resultados, combo_clientes_credito, entry_pesquisa
     selected_venda = None
 
     gui.canvas.delete("all")
@@ -136,27 +137,54 @@ def abrir_contas_a_receber():
     frame_credito = gui.ttk.Frame(tab_creditos)
     frame_credito.pack(pady=10)
 
-    gui.ttk.Label(frame_credito, text="Cliente:").grid(row=0, column=0, padx=5, pady=5)
-    combo_clientes_credito = gui.ttk.Combobox(frame_credito, width=30)
-    combo_clientes_credito.grid(row=0, column=1, padx=5, pady=5)
+    # Adicionar frame para pesquisa
+    frame_pesquisa = gui.ttk.Frame(frame_credito)
+    frame_pesquisa.grid(row=0, column=0, columnspan=2, pady=(0, 10))
 
-    gui.ttk.Label(frame_credito, text="Valor: R$").grid(row=1, column=0, padx=5, pady=5)
+    gui.ttk.Label(frame_pesquisa, text="Pesquisar cliente:").pack(side='left', padx=5)
+    entry_pesquisa = gui.ttk.Entry(frame_pesquisa, width=30)
+    entry_pesquisa.pack(side='left', padx=5)
+
+    # Frame para resultados da pesquisa
+    frame_resultados = gui.ttk.Frame(frame_credito)
+    frame_resultados.grid(row=1, column=0, columnspan=2, pady=(0, 10))
+    frame_resultados.grid_remove()  # Initially hidden
+
+    # Tabela de resultados da pesquisa
+    tree_resultados = gui.ttk.Treeview(frame_resultados,
+                                      columns=("Nome", "Telefone"),
+                                      show="headings",
+                                      height=5)
+
+    tree_resultados.heading("Nome", text="Nome")
+    tree_resultados.heading("Telefone", text="Telefone")
+
+    tree_resultados.column("Nome", width=250)
+    tree_resultados.column("Telefone", width=150)
+
+    tree_resultados.pack(pady=5)
+
+    entry_pesquisa.bind('<Return>', filtrar_clientes)
+
+    # Resto dos widgets do frame_credito
+     
+    gui.ttk.Label(frame_credito, text="Valor: R$").grid(row=2, column=0, padx=5, pady=5)
     entry_valor_credito = gui.ttk.Entry(frame_credito)
-    entry_valor_credito.grid(row=1, column=1, padx=5, pady=5)
+    entry_valor_credito.grid(row=2, column=1, padx=5, pady=5)
 
-    gui.ttk.Label(frame_credito, text="Observação:").grid(row=2, column=0, padx=5, pady=5)
+    gui.ttk.Label(frame_credito, text="Observação:").grid(row=3, column=0, padx=5, pady=5)
     entry_obs_credito = gui.ttk.Entry(frame_credito, width=50)
-    entry_obs_credito.grid(row=2, column=1, padx=5, pady=5)
+    entry_obs_credito.grid(row=3, column=1, padx=5, pady=5)
 
     btn_registrar_credito = gui.Button(frame_credito,
                                      text="Registrar Crédito",
-                                     command=lambda: registrar_credito(combo_clientes_credito.get(),
+                                     command=lambda: registrar_credito(entry_pesquisa.get(),
                                                                      entry_valor_credito.get(),
                                                                      entry_obs_credito.get()),
                                      font=("Arial", 12),
                                      bg="#4CAF50",
                                      fg="white")
-    btn_registrar_credito.grid(row=3, column=0, columnspan=2, pady=10)
+    btn_registrar_credito.grid(row=5, column=0, columnspan=2, pady=10)
 
     # Tabela de créditos
     tree_creditos = gui.ttk.Treeview(tab_creditos,
@@ -243,9 +271,11 @@ Agradecemos sua atenção!"""
     # Inicializar dados
     tree_vendas.bind("<<TreeviewSelect>>", lambda e: on_select_venda())
     tree_cobranca.bind("<Button-1>", toggle_checkbox)
+    entry_pesquisa.bind('<Enter>', filtrar_clientes)
+    tree_resultados.bind('<Double-1>', selecionar_cliente)
+    tree_resultados.bind('<Return>', selecionar_cliente)
     atualizar_lista_vendas()
-    atualizar_combo_clientes(combo_clientes)
-    atualizar_combo_clientes(combo_clientes_credito)
+    atualizar_lista_creditos()
     atualizar_historico_pagamentos()
     atualizar_lista_creditos()
 
@@ -540,16 +570,47 @@ def atualizar_historico_pagamentos():
     
     conn.close()
 
-def atualizar_combo_clientes(combo):
+
+def filtrar_clientes(*args):
+    termo = entry_pesquisa.get().lower()
+    if not termo:
+        frame_resultados.grid_remove()
+        return
+        
     conn = database.create_connection()
     cursor = conn.cursor()
     
-    cursor.execute("SELECT nome FROM clientes ORDER BY nome")
-    clientes = [row[0] for row in cursor.fetchall()]
+    cursor.execute("""
+        SELECT nome, telefone 
+        FROM clientes 
+        WHERE LOWER(nome) LIKE ? 
+        ORDER BY nome
+    """, (f'%{termo}%',))
     
-    combo['values'] = clientes
-    
+    resultados = cursor.fetchall()
     conn.close()
+    
+    # Limpar tabela
+    for item in tree_resultados.get_children():
+        tree_resultados.delete(item)
+        
+    # Preencher com resultados
+    for cliente in resultados:
+        tree_resultados.insert("", "end", values=cliente)
+    
+    if resultados:
+        frame_resultados.grid()
+    else:
+        frame_resultados.grid_remove()
+
+def selecionar_cliente(event):
+    selection = tree_resultados.selection()
+    if selection:
+        tree_resultados.pack_forget()
+        entry_pesquisa.delete(0, 'end')
+        entry_pesquisa.insert(0, tree_resultados[1])
+        frame_resultados.grid_remove()
+
 
 def registrar_credito(cliente, valor, observacao):
     global entry_valor_credito, entry_obs_credito  # Declarar uso das variáveis globais
