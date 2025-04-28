@@ -90,8 +90,8 @@ def abrir_contas_a_receber():
     frame_filtros.pack(pady=10)
 
     gui.ttk.Label(frame_filtros, text="Cliente:").grid(row=0, column=0, padx=5)
-    combo_clientes = gui.ttk.Combobox(frame_filtros, width=30)
-    combo_clientes.grid(row=0, column=1, padx=5)
+    entry_cliente = gui.ttk.Entry(frame_filtros, width=30)
+    entry_cliente.grid(row=0, column=1, padx=5)
 
     gui.ttk.Label(frame_filtros, text="Data Inicial:").grid(row=0, column=2, padx=5)
     entry_data_inicial = gui.ttk.Entry(frame_filtros, width=12)
@@ -103,7 +103,7 @@ def abrir_contas_a_receber():
 
     btn_filtrar = gui.Button(frame_filtros,
                             text="Filtrar",
-                            command=lambda: filtrar_pagamentos(combo_clientes.get(), 
+                            command=lambda: filtrar_pagamentos(entry_cliente.get(), 
                                                             entry_data_inicial.get(),
                                                             entry_data_final.get()),
                             font=("Arial", 12),
@@ -280,6 +280,9 @@ Agradecemos sua atenção!"""
     entry_pesquisa.bind('<Enter>', filtrar_clientes)
     tree_resultados.bind('<Button-1>', selecionar_cliente)
     tree_resultados.bind('<Return>', selecionar_cliente)
+    entry_cliente.bind('<Return>', lambda e: filtrar_pagamentos(entry_cliente.get(),
+                                                            entry_data_inicial.get(),
+                                                            entry_data_final.get()))
     atualizar_lista_vendas()
     atualizar_lista_creditos()
     atualizar_historico_pagamentos()
