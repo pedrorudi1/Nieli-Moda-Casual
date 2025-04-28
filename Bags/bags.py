@@ -5,7 +5,9 @@ from tkinter import ttk, messagebox
 from datetime import datetime
 
 def abrir_bags():
-    global tree_bags, combo_clientes, tree_produtos, tree_produtos_selecionados, tree_todas_bags, tree_itens_bag
+    global tree_bags, tree_clientes, tree_produtos, tree_produtos_selecionados, tree_todas_bags
+    global tree_itens_bag, entry_filtro_clientes, entry_filtro_produtos
+    global frame_filtro_cliente, frame_filtro_produtos, selected_cliente_id
     
     gui.canvas.delete("all")
     gui.canvas.create_image(0, 0, image=gui.FotoBG, anchor="nw")
@@ -23,13 +25,47 @@ def abrir_bags():
     frame_cliente = ttk.LabelFrame(tab_criar, text="Selecionar Cliente")
     frame_cliente.pack(fill="x", padx=10, pady=5)
 
-    combo_clientes = ttk.Combobox(frame_cliente, width=40)
-    combo_clientes.pack(padx=5, pady=5)
-    atualizar_combo_clientes()
+    # Filtro de clientes
+    frame_filtro_cliente = ttk.Frame(frame_cliente)
+    frame_filtro_cliente.pack(fill="x", padx=5, pady=5)
 
+    ttk.Label(frame_filtro_cliente, text="Buscar cliente:").pack(side="left", padx=5)
+    entry_filtro_clientes = ttk.Entry(frame_filtro_cliente, width=40)
+    entry_filtro_clientes.pack(side="left", padx=5)
+    entry_filtro_clientes.bind('<KeyRelease>', filtrar_clientes)
+
+    # Treeview para clientes
+    tree_clientes = ttk.Treeview(frame_cliente, 
+                                columns=("ID", "Nome", "Telefone", "Email"),
+                                show="headings",
+                                height=4)
+    
+    tree_clientes.heading("ID", text="ID")
+    tree_clientes.heading("Nome", text="Nome")
+    tree_clientes.heading("Telefone", text="Telefone")
+
+    tree_clientes.column("ID", width=50)
+    tree_clientes.column("Nome", width=200)
+    tree_clientes.column("Telefone", width=100)
+
+    tree_clientes.pack(fill="x", padx=5, pady=5)
+    atualizar_lista_clientes()
+    
+    # Bind event for selecting client
+    tree_clientes.bind('<<TreeviewSelect>>', on_cliente_select)
+    
     # Frame para produtos disponíveis
     frame_produtos = ttk.LabelFrame(tab_criar, text="Produtos Disponíveis")
     frame_produtos.pack(fill="both", expand=True, padx=10, pady=5)
+
+    # Filtro de produtos
+    frame_filtro_produtos = ttk.Frame(frame_produtos)
+    frame_filtro_produtos.pack(fill="x", padx=5, pady=5)
+
+    ttk.Label(frame_filtro_produtos, text="Buscar produto:").pack(side="left", padx=5)
+    entry_filtro_produtos = ttk.Entry(frame_filtro_produtos, width=40)
+    entry_filtro_produtos.pack(side="left", padx=5)
+    entry_filtro_produtos.bind('<KeyRelease>', filtrar_produtos)
 
     tree_produtos = ttk.Treeview(frame_produtos, 
                                 columns=("ID", "Descrição", "Detalhe", "Tamanho", "Preço"), 
@@ -65,9 +101,17 @@ def abrir_bags():
                             fg="white")
     btn_remover.pack(side="left", padx=5)
 
+    btn_finalizar = gui.Button(frame_botoes, 
+                              text="Registrar Bag", 
+                              command=registrar_bag,
+                              bg="#2196F3",
+                              fg="white",
+                              width=20)
+    btn_finalizar.pack(side="left", padx=5)
+
     # Frame para produtos selecionados
     frame_selecionados = ttk.LabelFrame(tab_criar, text="Produtos na Bag")
-    frame_selecionados.pack(fill="both", expand=True, padx=10, pady=5)
+    frame_selecionados.pack(padx=10, pady=5, fill="both", expand=True)
 
     tree_produtos_selecionados = ttk.Treeview(frame_selecionados, 
                                              columns=("ID", "Descrição", "Detalhe", "Tamanho", "Preço"), 
@@ -80,14 +124,6 @@ def abrir_bags():
     
     tree_produtos_selecionados.pack(fill="both", expand=True, padx=5, pady=5)
 
-    # Botão finalizar
-    btn_finalizar = gui.Button(tab_criar, 
-                              text="Finalizar Bag", 
-                              command=finalizar_bag,
-                              bg="#2196F3",
-                              fg="white",
-                              width=20)
-    btn_finalizar.pack(pady=10)
 
     # Aba 2 - Visualizar Bags
     tab_visualizar = ttk.Frame(notebook)
@@ -178,6 +214,23 @@ def abrir_bags():
     tree_todas_bags.bind("<<TreeviewSelect>>", on_selecionar_bag)
     tree_itens_bag.bind("<Button-1>", toggle_item_selection)
     atualizar_lista_bags()
+
+def on_cliente_select(event=None):
+    """Handle client selection from treeview"""
+    global selected_cliente_id
+    
+    selected = tree_clientes.selection()
+    if not selected:
+        selected_cliente_id = None
+        return
+        
+    # Get the selected client's data
+    cliente_values = tree_clientes.item(selected[0])['values']
+    selected_cliente_id = cliente_values[0]  # Store the ID
+    
+    # Update the entry field to show selected client
+    entry_filtro_clientes.delete(0, 'end')
+    entry_filtro_clientes.insert(0, cliente_values[1])  # Show client name
 
 def on_selecionar_bag(event=None):
     selected = tree_todas_bags.selection()
@@ -345,14 +398,76 @@ def cancelar_bag():
     finally:
         conn.close()
 
-def atualizar_combo_clientes():
+def atualizar_lista_clientes():
     conn = database.create_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT codigo_cliente, nome FROM clientes ORDER BY nome")
+    cursor.execute("""
+        SELECT codigo_cliente, nome, telefone 
+        FROM clientes 
+        ORDER BY nome
+    """)
     clientes = cursor.fetchall()
     conn.close()
-    
-    combo_clientes['values'] = [f"{c[0]} - {c[1]}" for c in clientes]
+
+    for item in tree_clientes.get_children():
+        tree_clientes.delete(item)
+
+    for cliente in clientes:
+        tree_clientes.insert("", "end", values=cliente)
+
+def filtrar_clientes(event=None):
+    search_term = entry_filtro_clientes.get().lower()
+    for item in tree_clientes.get_children():
+        tree_clientes.delete(item)
+
+    conn = database.create_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT codigo_cliente, nome, telefone 
+        FROM clientes 
+        WHERE LOWER(nome) LIKE ? OR LOWER(telefone) LIKE ?
+        ORDER BY nome
+    """, (f'%{search_term}%', f'%{search_term}%'))
+    clientes = cursor.fetchall()
+    conn.close()
+
+    for cliente in clientes:
+        tree_clientes.insert("", "end", values=cliente)
+
+
+def filtrar_produtos(event=None):
+    search_term = entry_filtro_produtos.get().lower()
+    for item in tree_produtos.get_children():
+        tree_produtos.delete(item)
+
+    conn = database.create_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT 
+            id, 
+            descricao, 
+            detalhe, 
+            tamanho,
+            CASE 
+                WHEN preco_promocional > 0 THEN preco_promocional 
+                ELSE preco_venda 
+            END as preco_final
+        FROM produtos 
+        WHERE quantidade > 0 
+            AND (LOWER(descricao) LIKE ? OR LOWER(detalhe) LIKE ? OR LOWER(tamanho) LIKE ?)
+        ORDER BY descricao, detalhe, tamanho
+    """, (f'%{search_term}%', f'%{search_term}%', f'%{search_term}%'))
+    produtos = cursor.fetchall()
+    conn.close()
+
+    for produto in produtos:
+        tree_produtos.insert("", "end", values=(
+            produto[0],
+            produto[1],
+            produto[2],
+            produto[3],
+            f"R$ {produto[4]:.2f}"
+        ))
 
 def atualizar_lista_produtos():
     conn = database.create_connection()
@@ -391,7 +506,9 @@ def atualizar_lista_produtos():
         ))
 
 def adicionar_produto_bag():
-    if not combo_clientes.get():
+    global selected_cliente_id
+    
+    if not selected_cliente_id:
         messagebox.showerror("Erro", "Selecione um cliente")
         return
 
@@ -432,8 +549,10 @@ def remover_produto_bag():
 
     tree_produtos_selecionados.delete(selected_item)
 
-def finalizar_bag():
-    if not combo_clientes.get():
+def registrar_bag():
+    global selected_cliente_id
+    
+    if not selected_cliente_id:
         messagebox.showerror("Erro", "Selecione um cliente")
         return
 
@@ -442,17 +561,15 @@ def finalizar_bag():
         messagebox.showerror("Erro", "Adicione produtos à bag")
         return
 
-    cliente_id = combo_clientes.get().split(' - ')[0]
-    
     try:
         conn = database.create_connection()
         cursor = conn.cursor()
 
-        # Inserir nova bag
+        # Inserir nova bag using selected_cliente_id
         cursor.execute("""
             INSERT INTO bags (cliente_id, data_criacao, status)
             VALUES (?, datetime('now', 'localtime'), 'PENDENTE')
-        """, (cliente_id,))
+        """, (selected_cliente_id,))
         
         bag_id = cursor.lastrowid
 
@@ -476,9 +593,12 @@ def finalizar_bag():
         messagebox.showinfo("Sucesso", "Bag registrada com sucesso!")
         
         # Limpar seleções
-        combo_clientes.set('')
         for item in tree_produtos_selecionados.get_children():
             tree_produtos_selecionados.delete(item)
+        entry_filtro_clientes.config(state='normal')
+        entry_filtro_clientes.delete(0, 'end')
+        tree_clientes.selection_remove(tree_clientes.selection())
+        selected_cliente_id = None
 
     except Exception as e:
         conn.rollback()
