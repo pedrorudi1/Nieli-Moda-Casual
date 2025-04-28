@@ -135,19 +135,30 @@ def abrir_contas_a_receber():
 
     # Frame para registro de crédito
     frame_credito = gui.ttk.Frame(tab_creditos)
-    frame_credito.pack(pady=10)
+    frame_credito.grid(pady=10)
 
     # Adicionar frame para pesquisa
     frame_pesquisa = gui.ttk.Frame(frame_credito)
     frame_pesquisa.grid(row=0, column=0, columnspan=2, pady=(0, 10))
 
-    gui.ttk.Label(frame_pesquisa, text="Pesquisar cliente:").pack(side='left', padx=5)
-    entry_pesquisa = gui.ttk.Entry(frame_pesquisa, width=30)
-    entry_pesquisa.pack(side='left', padx=5)
+    # Pesquisa cliente
+    gui.ttk.Label(frame_credito, text="Pesquisar cliente:", anchor="e", width=15).grid(row=0, column=0, padx=5, pady=5, sticky="e")
+    entry_pesquisa = gui.ttk.Entry(frame_credito, width=40)
+    entry_pesquisa.grid(row=0, column=1, padx=5, pady=5, sticky="w")
+
+    # Valor
+    gui.ttk.Label(frame_credito, text="Valor: R$", anchor="e", width=15).grid(row=1, column=0, padx=5, pady=5, sticky="e")
+    entry_valor_credito = gui.ttk.Entry(frame_credito, width=40)
+    entry_valor_credito.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+
+    # Observação
+    gui.ttk.Label(frame_credito, text="Observação:", anchor="e", width=15).grid(row=2, column=0, padx=5, pady=5, sticky="e")
+    entry_obs_credito = gui.ttk.Entry(frame_credito, width=40)
+    entry_obs_credito.grid(row=2, column=1, padx=5, pady=5, sticky="w")
 
     # Frame para resultados da pesquisa
     frame_resultados = gui.ttk.Frame(frame_credito)
-    frame_resultados.grid(row=1, column=0, columnspan=2, pady=(0, 10))
+    frame_resultados.grid(row=3, column=0, columnspan=2, pady=(0, 10))
     frame_resultados.grid_remove() 
 
     # Tabela de resultados da pesquisa
@@ -165,14 +176,6 @@ def abrir_contas_a_receber():
     tree_resultados.pack(pady=5)
 
     entry_pesquisa.bind('<Return>', filtrar_clientes)
-
-    gui.ttk.Label(frame_credito, text="Valor: R$").grid(row=2, column=0, padx=5, pady=5)
-    entry_valor_credito = gui.ttk.Entry(frame_credito)
-    entry_valor_credito.grid(row=2, column=1, padx=5, pady=5)
-
-    gui.ttk.Label(frame_credito, text="Observação:").grid(row=3, column=0, padx=5, pady=5)
-    entry_obs_credito = gui.ttk.Entry(frame_credito, width=50)
-    entry_obs_credito.grid(row=3, column=1, padx=5, pady=5)
 
     btn_registrar_credito = gui.Button(frame_credito,
                                      text="Registrar Crédito",
@@ -202,7 +205,12 @@ def abrir_contas_a_receber():
     tree_creditos.column("Data", width=150)
     tree_creditos.column("Observação", width=200)
     
-    tree_creditos.pack(pady=10, fill='both', expand=True)
+    # Pack replaced with grid
+    tree_creditos.grid(row=6, column=0, columnspan=2, pady=10, sticky="nsew")
+
+    # Configure grid weights to allow expansion
+    tab_creditos.grid_columnconfigure(0, weight=1)
+    tab_creditos.grid_rowconfigure(6, weight=1)
 
     # Aba 4 - Cobrança
     tab_cobranca = gui.ttk.Frame(notebook)
