@@ -1,5 +1,6 @@
 from Database import database
 from Gui import gui
+from tkinter import ttk
 
 def abrir_cadastro_produtos():
     from Produtos import preencher_campos_produto, cadastrar_produto, atualizar_produto, excluir_produto
@@ -11,27 +12,27 @@ def abrir_cadastro_produtos():
     gui.canvas.create_text(700, 50, text="Cadastro de Produtos", font=("Arial", 24))
 
     gui.canvas.create_text(550, 120, text="Descrição:", anchor="e", font=("Arial", 12))
-    entry_descricao = gui.Entry(gui.App, width=40, font=("Arial", 12))
+    entry_descricao = ttk.Entry(gui.App, width=40, font=("Arial", 12))
     gui.canvas.create_window(560, 120, window=entry_descricao, anchor="w")
 
     gui.canvas.create_text(550, 160, text="Detalhe:", anchor="e", font=("Arial", 12))
-    entry_detalhe = gui.Entry(gui.App, width=40, font=("Arial", 12))
+    entry_detalhe = ttk.Entry(gui.App, width=40, font=("Arial", 12))
     gui.canvas.create_window(560, 160, window=entry_detalhe, anchor="w")
 
     gui.canvas.create_text(550, 200, text="Tamanho:", anchor="e", font=("Arial", 12))
-    entry_tamanho = gui.Entry(gui.App, width=40, font=("Arial", 12))
+    entry_tamanho = ttk.Entry(gui.App, width=40, font=("Arial", 12))
     gui.canvas.create_window(560, 200, window=entry_tamanho, anchor="w")
 
     gui.canvas.create_text(550, 240, text="Preço de Custo:", anchor="e", font=("Arial", 12))
-    entry_preco_custo = gui.Entry(gui.App, width=40, font=("Arial", 12))
+    entry_preco_custo = ttk.Entry(gui.App, width=40, font=("Arial", 12))
     gui.canvas.create_window(560, 240, window=entry_preco_custo, anchor="w")
 
     gui.canvas.create_text(550, 280, text="Preço de Venda: ", anchor="e", font=("Arial, 12"))
-    entry_preco_venda = gui.Entry(gui.App, width=40, font=("Arial", 12))
+    entry_preco_venda = ttk.Entry(gui.App, width=40, font=("Arial", 12))
     gui.canvas.create_window(560,280, window=entry_preco_venda, anchor="w")
 
     gui.canvas.create_text(550, 320, text="Quantidade:", anchor="e", font=("Arial", 12))
-    entry_quantidade = gui.Entry(gui.App, width=40, font=("Arial", 12))
+    entry_quantidade = ttk.Entry(gui.App, width=40, font=("Arial", 12))
     gui.canvas.create_window(560, 320, window=entry_quantidade, anchor="w")
 
     btn_cadastrar = gui.Button(gui.App, text="Cadastrar", command=lambda: cadastrar_produto (entry_descricao,
@@ -78,6 +79,7 @@ def abrir_cadastro_produtos():
 
     tree_produtos.bind("<Double-1>", preencher_campos_produto)
     tree_produtos.bind("<Delete>", del_para_excluir)
+    entry_descricao.bind("<KeyRelease>", filtrar_produtos)
 
     atualizar_tabela_produtos(tree_produtos)
 
@@ -146,6 +148,12 @@ def atualizar_produto():
     gui.messagebox.showinfo("Sucesso", "Produto atualizado com sucesso.")
     conn.close()
     
+    entry_descricao.delete(0, gui.END)
+    entry_detalhe.delete(0, gui.END)
+    entry_tamanho.delete(0,gui.END)
+    entry_preco_custo.delete(0,gui.END)
+    entry_preco_venda.delete(0, gui.END)
+    entry_quantidade.delete(0, gui.END)
     atualizar_tabela_produtos(tree_produtos)
 
 def excluir_produto (tree_produtos):
@@ -166,7 +174,6 @@ def excluir_produto (tree_produtos):
         gui.messagebox.showinfo("Sucesso", "Produto excluído com sucesso.")
         atualizar_tabela_produtos(tree_produtos)
         conn.close()
-        atualizar_tabela_produtos(tree_produtos)
         
 def preencher_campos_produto(Event):
     
@@ -210,3 +217,26 @@ def atualizar_tabela_produtos(tree_produtos):
 
 def del_para_excluir(Event):
     excluir_produto(tree_produtos)
+
+def filtrar_produtos(event=None):
+    
+    search_term = entry_descricao.get().lower()
+    for item in tree_produtos.get_children():
+        tree_produtos.delete(item)
+
+    if not search_term:
+        atualizar_tabela_produtos(tree_produtos)
+        return
+
+    conn = database.create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM produtos WHERE descricao LIKE ?", ('%' + search_term + '%',))
+    rows = cursor.fetchall()
+    conn.close()
+
+    for row in rows:
+        valores = list(row)
+        valores[4] = f"R$ {valores[4]:.2f}".replace(".", ",")
+        valores[5] = f"R$ {valores[5]:.2f}".replace(".", ",")
+        tree_produtos.insert("", "end", values=valores)
