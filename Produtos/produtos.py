@@ -92,8 +92,8 @@ def cadastrar_produto(entry_descricao,
     descricao = entry_descricao.get().strip()
     detalhe = entry_detalhe.get().strip()
     tamanho = entry_tamanho.get().strip()
-    preco_custo = float(entry_preco_custo.get())
-    preco_venda = float(entry_preco_venda.get())
+    preco_custo = float(entry_preco_custo.get().replace(",", "."))
+    preco_venda = float(entry_preco_venda.get().replace(",", "."))
     quantidade = int(entry_quantidade.get())
 
     conn = database.create_connection()
@@ -117,6 +117,7 @@ def cadastrar_produto(entry_descricao,
         print("Erro: A tabela de produtos não foi encontrada.")
 
     gui.messagebox.showinfo("Sucesso", "Produto cadastrado com sucesso!")
+    atualizar_tabela_produtos(tree_produtos)
 
 def atualizar_produto():
     
@@ -131,8 +132,8 @@ def atualizar_produto():
     novo_descricao = entry_descricao.get().strip()
     novo_detalhe = entry_detalhe.get().strip()
     novo_tamanho = entry_tamanho.get().strip()
-    novo_preco_custo = entry_preco_custo.get().strip()
-    novo_preco_venda = entry_preco_venda.get().strip()
+    novo_preco_custo = entry_preco_custo.get().strip().replace(",", ".")
+    novo_preco_venda = entry_preco_venda.get().strip().replace(",", ".")
     novo_quantidade = entry_quantidade.get().strip()
         
                
@@ -164,7 +165,8 @@ def excluir_produto (tree_produtos):
         tree_produtos.delete(selected_item)
         gui.messagebox.showinfo("Sucesso", "Produto excluído com sucesso.")
         atualizar_tabela_produtos(tree_produtos)
-        conn.close()    
+        conn.close()
+        atualizar_tabela_produtos(tree_produtos)
         
 def preencher_campos_produto(Event):
     
@@ -197,7 +199,10 @@ def atualizar_tabela_produtos(tree_produtos):
         tree_produtos.delete(item)
         
     for row in rows:
-        tree_produtos.insert("", "end", values=row)
+        valores = list(row)
+        valores[4] = f"R$ {float(valores[4]):.2f}".replace(".", ",")
+        valores[5] = f"R$ {float(valores[5]):.2f}".replace(".", ",")
+        tree_produtos.insert("", "end", values=valores)
     
     conn.close()
 
