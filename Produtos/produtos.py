@@ -92,8 +92,8 @@ def cadastrar_produto(entry_descricao,
     descricao = entry_descricao.get().strip()
     detalhe = entry_detalhe.get().strip()
     tamanho = entry_tamanho.get().strip()
-    preco_custo = float(entry_preco_custo.get().replace(",", "."))
-    preco_venda = float(entry_preco_venda.get().replace(",", "."))
+    preco_custo = float(entry_preco_custo.get())
+    preco_venda = float(entry_preco_venda.get())
     quantidade = int(entry_quantidade.get())
 
     conn = database.create_connection()
@@ -132,8 +132,8 @@ def atualizar_produto():
     novo_descricao = entry_descricao.get().strip()
     novo_detalhe = entry_detalhe.get().strip()
     novo_tamanho = entry_tamanho.get().strip()
-    novo_preco_custo = entry_preco_custo.get().strip().replace(",", ".")
-    novo_preco_venda = entry_preco_venda.get().strip().replace(",", ".")
+    novo_preco_custo = entry_preco_custo.get().strip().replace(",", ".").replace("R$", "")
+    novo_preco_venda = entry_preco_venda.get().strip().replace(",", ".").replace("R$", "")
     novo_quantidade = entry_quantidade.get().strip()
         
                
@@ -183,8 +183,10 @@ def preencher_campos_produto(Event):
         entry_descricao.insert(0, valores[1])
         entry_detalhe.insert(0, valores[2])
         entry_tamanho.insert(0, valores[3])
-        entry_preco_custo.insert(0, valores[4])
-        entry_preco_venda.insert(0, valores[5])
+        preco_custo = valores[4].replace("R$", "").replace(",", ".").strip()
+        preco_venda = valores[5].replace("R$", "").replace(",", ".").strip()
+        entry_preco_custo.insert(0, float(preco_custo))
+        entry_preco_venda.insert(0, float(preco_venda))
         entry_quantidade.insert(0, valores[6])
     
 def atualizar_tabela_produtos(tree_produtos):
@@ -200,8 +202,8 @@ def atualizar_tabela_produtos(tree_produtos):
         
     for row in rows:
         valores = list(row)
-        valores[4] = f"R$ {float(valores[4]):.2f}".replace(".", ",")
-        valores[5] = f"R$ {float(valores[5]):.2f}".replace(".", ",")
+        valores[4] = f"R$ {valores[4]:.2f}".replace(".", ",")
+        valores[5] = f"R$ {valores[5]:.2f}".replace(".", ",")
         tree_produtos.insert("", "end", values=valores)
     
     conn.close()
