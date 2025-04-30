@@ -266,9 +266,12 @@ def atualizar_itens_bag(bag_id):
         tree_itens_bag.delete(item)
         
     for item in itens:
+        valores = list(item)
+        # Formata o preço (índice 4) com R$ e duas casas decimais
+        valores[4] = f"R$ {float(valores[4]):.2f}".replace(".", ",")
         tree_itens_bag.insert("", "end", values=(
             '☐',  # Checkbox desmarcado
-            *item  # Resto dos valores
+            *valores  # Resto dos valores já formatados
         ))
     
     conn.close()
@@ -433,7 +436,6 @@ def filtrar_clientes(event=None):
 
     for cliente in clientes:
         tree_clientes.insert("", "end", values=cliente)
-
 
 def filtrar_produtos(event=None):
     search_term = entry_filtro_produtos.get().lower()
