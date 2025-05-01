@@ -94,8 +94,8 @@ def cadastrar_produto(entry_descricao,
     descricao = entry_descricao.get().strip()
     detalhe = entry_detalhe.get().strip()
     tamanho = entry_tamanho.get().strip()
-    preco_custo = float(entry_preco_custo.get())
-    preco_venda = float(entry_preco_venda.get())
+    preco_custo = float(entry_preco_custo.get().strip().replace(",","."))
+    preco_venda = float(entry_preco_venda.get().strip().replace(",","."))
     quantidade = int(entry_quantidade.get())
 
     conn = database.create_connection()
