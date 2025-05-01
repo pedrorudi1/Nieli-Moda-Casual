@@ -4,7 +4,9 @@ from tkinter import ttk
 
 def abrir_cadastro_produtos():
     from Produtos import preencher_campos_produto, cadastrar_produto, atualizar_produto, excluir_produto
-    global tree_produtos, entry_descricao, entry_detalhe, entry_tamanho, entry_preco_custo, entry_preco_venda, entry_quantidade
+    global tree_produtos, entry_descricao, entry_detalhe, entry_tamanho, entry_preco_custo
+    global entry_preco_venda, entry_quantidade, data_cadastro
+    from datetime import datetime
     
     gui.canvas.delete("all")
     gui.canvas.create_image(0, 0, image=gui.FotoBG, anchor="nw")
@@ -41,7 +43,8 @@ def abrir_cadastro_produtos():
                                                                                             entry_preco_custo,
                                                                                             entry_preco_venda,
                                                                                             entry_quantidade,
-                                                                                            tree_produtos),
+                                                                                            tree_produtos,
+                                                                                            ),
                                font=("Arial", 12), bg="#4CAF50", fg="white")
     gui.canvas.create_window(650, 360, window=btn_cadastrar)
 
@@ -91,17 +94,20 @@ def cadastrar_produto(entry_descricao,
                       entry_quantidade,
                       tree_produtos):
     
+    from datetime import datetime
+    
     descricao = entry_descricao.get().strip()
     detalhe = entry_detalhe.get().strip()
     tamanho = entry_tamanho.get().strip()
     preco_custo = float(entry_preco_custo.get().strip().replace(",","."))
     preco_venda = float(entry_preco_venda.get().strip().replace(",","."))
     quantidade = int(entry_quantidade.get())
+    data_cadastro = datetime.now()
 
     conn = database.create_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO produtos (descricao, detalhe, tamanho, preco_custo, preco_venda, quantidade) VALUES (?, ?, ?, ?, ?, ?)",
-                   (descricao, detalhe, tamanho, preco_custo, preco_venda, quantidade))
+    cursor.execute("INSERT INTO produtos (descricao, detalhe, tamanho, preco_custo, preco_venda, quantidade, data_cadastro) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                   (descricao, detalhe, tamanho, preco_custo, preco_venda, quantidade, data_cadastro))
     novo_id = cursor.lastrowid
     conn.commit()
     conn.close()
@@ -114,7 +120,7 @@ def cadastrar_produto(entry_descricao,
     entry_quantidade.delete(0, gui.END)
 
     if 'tree_produtos' in globals() and tree_produtos:
-        tree_produtos.insert("", "end", values=(novo_id, descricao, detalhe, tamanho, preco_custo, preco_venda, quantidade))
+        tree_produtos.insert("", "end", values=(novo_id, descricao, detalhe, tamanho, preco_custo, preco_venda, quantidade, data_cadastro))
     else:
         print("Erro: A tabela de produtos não foi encontrada.")
 
@@ -122,7 +128,8 @@ def cadastrar_produto(entry_descricao,
     atualizar_tabela_produtos(tree_produtos)
 
 def atualizar_produto():
-    
+    from datetime import datetime
+
     selected_item = tree_produtos.selection()
     if not selected_item:
         gui.messagebox.showwarning("Aviso", "Por favor, selecione um produto para atualizar.")
@@ -137,12 +144,13 @@ def atualizar_produto():
     novo_preco_custo = entry_preco_custo.get().strip().replace(",", ".").replace("R$", "")
     novo_preco_venda = entry_preco_venda.get().strip().replace(",", ".").replace("R$", "")
     novo_quantidade = entry_quantidade.get().strip()
+    data_atualizacao = datetime.now()
         
                
     conn = database.create_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE produtos SET descricao=?, detalhe=?, tamanho=?, preco_custo=?, preco_venda=?, quantidade=? WHERE id=?",
-        (novo_descricao, novo_detalhe, novo_tamanho, novo_preco_custo, novo_preco_venda, novo_quantidade, id))
+    cursor.execute("UPDATE produtos SET descricao=?, detalhe=?, tamanho=?, preco_custo=?, preco_venda=?, quantidade=?, data_cadastro=? WHERE id=?",
+        (novo_descricao, novo_detalhe, novo_tamanho, novo_preco_custo, novo_preco_venda, novo_quantidade, data_atualizacao, id))
     
     conn.commit()
     gui.messagebox.showinfo("Sucesso", "Produto atualizado com sucesso.")

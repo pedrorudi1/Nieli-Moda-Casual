@@ -26,7 +26,8 @@ def criar_banco_dados():
                        preco_venda REAL NOT NULL,
                        quantidade INTEGER NOT NULL,
                        promocao INTEGER DEFAULT 0,
-                       preco_promocional REAL)''')
+                       preco_promocional REAL,
+                       data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     
     # Tabela de vendas
     cursor.execute('''CREATE TABLE IF NOT EXISTS vendas

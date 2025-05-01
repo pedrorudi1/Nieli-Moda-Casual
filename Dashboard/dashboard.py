@@ -56,6 +56,15 @@ def abrir_dashboard():
     gui.Label(frame_lucro, text=f"Lucro (Mês Atual): R$ {lucro_mes:.2f}", **style_valor).pack()
     gui.Label(frame_lucro, text=f"Lucro (3 Meses): R$ {lucro_trimestre:.2f}", **style_valor).pack()
 
+    # Frame lucro previsto
+    frame_lucro_previsto = gui.Frame(frame_dashboard, **style_frame)
+    frame_lucro_previsto.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
+
+    gui.Label(frame_lucro_previsto, text="Lucro Previsto", **style_titulo).pack()
+    lucro_previsto_mes, lucro_previsto_trimestre = obter_lucro_previsto()
+    gui.Label(frame_lucro_previsto, text=f"Lucro Previsto (Mês Atual): R$ {lucro_previsto_mes:.2f}", **style_valor).pack()
+    gui.Label(frame_lucro_previsto, text=f"Lucro Previsto (3 Meses): R$ {lucro_previsto_trimestre:.2f}", **style_valor).pack()
+
     # Configurar grid
     frame_dashboard.grid_columnconfigure(0, weight=1)
     frame_dashboard.grid_columnconfigure(1, weight=1)
@@ -162,3 +171,35 @@ def obter_dados_lucro():
         
     conn.close()
     return lucro_mes, lucro_trimestre
+
+def obter_lucro_previsto():
+    conn = database.create_connection()
+    cursor = conn.cursor()
+    
+    # Datas para filtro
+    hoje = datetime.now()
+    primeiro_dia_mes = hoje.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    primeiro_dia_tres_meses = (hoje - timedelta(days=90)).replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # Query para calcular o lucro previsto
+    query_lucro_previsto = """
+        SELECT 
+            SUM(CASE 
+                WHEN data_cadastro >= ? THEN (preco_venda - preco_custo) * quantidade 
+                ELSE 0 
+            END) as lucro_mes_atual,
+            SUM(CASE 
+                WHEN data_cadastro >= ? THEN (preco_venda - preco_custo) * quantidade 
+                ELSE 0 
+            END) as lucro_tres_meses
+        FROM produtos
+    """
+    
+    cursor.execute(query_lucro_previsto, (primeiro_dia_mes, primeiro_dia_tres_meses))
+    resultado = cursor.fetchone()
+    
+    lucro_mes = resultado[0] if resultado[0] is not None else 0
+    lucro_tres_meses = resultado[1] if resultado[1] is not None else 0
+    
+    conn.close()
+    return lucro_mes, lucro_tres_meses
