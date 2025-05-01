@@ -129,7 +129,7 @@ def abrir_promocoes():
     tree_produtos.bind('<<TreeviewSelect>>', atualizar_preco_selecionado)
     tree_promocoes.bind('<Delete>', lambda event: remover_promocao())
 
-    # Carregar produtos
+    carregar_produtos_promocao()
     carregar_produtos_disponiveis()
 
 def carregar_produtos_disponiveis():
