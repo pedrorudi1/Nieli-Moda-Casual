@@ -333,24 +333,23 @@ def finalizar_venda(tree_itens):
     conn = database.create_connection()
     cursor = conn.cursor()
     
-    # Inserir venda usando o valor final manual
-    cursor.execute("""
-        INSERT INTO vendas (cliente_id, valor_total, data_venda)
-        VALUES (?, ?, datetime('now', 'localtime'))
-    """, (cliente_id, valor_final))
-    
-    venda_id = cursor.lastrowid
-
-    # Inserir itens da venda
-    for item in tree_itens.get_children():
-        valores = tree_itens.item(item)["values"]
-        produto_info = valores[0]
-        quantidade = int(valores[1])
-        valor_unitario = float(valores[2].replace("R$", ""))
-        produto_id = valores[4]  # Pegar o ID do produto diretamente
+    try:
+        # Inserir venda principal - removido produto_id do INSERT
+        cursor.execute("""
+            INSERT INTO vendas (cliente_id, valor_total, data_venda)
+            VALUES (?, ?, datetime('now', 'localtime'))
+        """, (cliente_id, valor_final))
         
-        try:
-            # Inserir item usando o ID armazenado
+        venda_id = cursor.lastrowid
+
+        # Inserir itens da venda
+        for item in tree_itens.get_children():
+            valores = tree_itens.item(item)["values"]
+            quantidade = int(valores[1])
+            valor_unitario = float(valores[2].replace("R$", "").strip())
+            produto_id = valores[4]  # ID do produto
+            
+            # Inserir item da venda
             cursor.execute("""
                 INSERT INTO itens_venda (venda_id, produto_id, quantidade, valor_unitario)
                 VALUES (?, ?, ?, ?)
@@ -362,20 +361,26 @@ def finalizar_venda(tree_itens):
                 SET quantidade = quantidade - ? 
                 WHERE id = ?
             """, (quantidade, produto_id))
-        except Exception as e:
-            conn.rollback()
-            gui.messagebox.showerror("Erro", f"Erro ao processar item: {produto_info}")
-            return
 
-    conn.commit()
-    conn.close()
-    
-    gui.messagebox.showinfo("Sucesso", "Venda finalizada com sucesso!")
-    for item in tree_itens.get_children():
-        tree_itens.delete(item)
-    
-    atualizar_historico_vendas()
-    abrir_cadastro_vendas()
+        conn.commit()
+        gui.messagebox.showinfo("Sucesso", "Venda finalizada com sucesso!")
+        
+        # Limpar interface após venda bem sucedida
+        for item in tree_itens.get_children():
+            tree_itens.delete(item)
+        
+        entry_cliente_search.delete(0, 'end')
+        entry_produto_search.delete(0, 'end')
+        entry_quantidade.delete(0, 'end')
+        entry_valor_final.delete(0, 'end')
+        
+        atualizar_historico_vendas()
+
+    except Exception as e:
+        conn.rollback()
+        gui.messagebox.showerror("Erro", f"Erro ao finalizar venda: {str(e)}")
+    finally:
+        conn.close()
 
 def atualizar_historico_vendas():
     conn = database.create_connection()
