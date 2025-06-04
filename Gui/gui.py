@@ -8,12 +8,13 @@ from Promocoes import abrir_promocoes
 from Dashboard import abrir_dashboard
 from Bags import abrir_bags
 
+
     
 database.criar_banco_dados()
 
 App = Tk()
 App.title("Niéli Moda Casual")
-App.iconbitmap(r"Assets/iconbitmap.ico")
+#App.iconbitmap(r"Assets/iconbitmap.ico")
 App.geometry("1200x740")
 App.configure(bg="#E4E1DC")
 
