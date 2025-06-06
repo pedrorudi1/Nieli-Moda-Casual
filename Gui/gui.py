@@ -7,6 +7,7 @@ from ContasAReceber import abrir_contas_a_receber
 from Promocoes import abrir_promocoes
 from Dashboard import abrir_dashboard
 from Bags import abrir_bags
+from PIL import Image, ImageTk
 
 
     
@@ -14,7 +15,9 @@ database.criar_banco_dados()
 
 App = Tk()
 App.title("Niéli Moda Casual")
-App.iconbitmap(r"Assets/iconbitmap.ico")
+image = Image.open(r"Assets/iconbitmap.png")
+photo =  ImageTk.PhotoImage(image)
+App.iconphoto(False, photo)
 App.geometry("1200x740")
 App.configure(bg="#E4E1DC")
 
