@@ -209,7 +209,7 @@ def atualizar_tabela_produtos(tree_produtos):
     conn = database.create_connection()
     cursor = conn.cursor()
     
-    cursor.execute("SELECT * FROM produtos")
+    cursor.execute("SELECT * FROM produtos ORDER BY descricao")
     rows = cursor.fetchall()
     
     for item in tree_produtos.get_children():
