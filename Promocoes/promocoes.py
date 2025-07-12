@@ -77,7 +77,7 @@ def abrir_promocoes():
     frame_pesquisa.pack(pady=5, fill=BOTH)
 
     gui.Label(frame_pesquisa, text="Filtrar produtos:", font=("Arial", 12)).pack(side=LEFT, padx=5)
-    entry_filtro = gui.Entry(frame_pesquisa, width=40)
+    entry_filtro = ttk.Entry(frame_pesquisa, width=40)
     entry_filtro.pack(side=LEFT, padx=5)
 
     # Tabela de produtos disponíveis

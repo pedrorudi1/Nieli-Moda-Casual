@@ -1,5 +1,6 @@
 from Database import database
 from Gui import gui
+from tkinter import ttk
 
 
     
@@ -13,11 +14,11 @@ def abrir_cadastro_clientes():
     gui.canvas.create_text(700, 50, text="Cadastro de Clientes", font=("Arial", 24))
 
     gui.canvas.create_text(550, 120, text="Nome:", anchor="e", font=("Arial", 12))
-    entry_nome = gui.Entry(gui.App, width=40, font=("Arial", 12))
+    entry_nome = ttk.Entry(gui.App, width=40, font=("Arial", 12))
     gui.canvas.create_window(560, 120, window=entry_nome, anchor="w")
 
     gui.canvas.create_text(550, 160, text="Telefone:", anchor="e", font=("Arial", 12))
-    entry_telefone = gui.Entry(gui.App, width=40, font=("Arial", 12))
+    entry_telefone = ttk.Entry(gui.App, width=40, font=("Arial", 12))
     gui.canvas.create_window(560, 160, window=entry_telefone, anchor="w")
 
     btn_cadastrar = gui.Button(gui.App, text="Cadastrar", command=lambda: cadastrar_cliente(entry_nome, entry_telefone, tree_clientes), font=("Arial", 12), bg="#4CAF50", fg="white")
