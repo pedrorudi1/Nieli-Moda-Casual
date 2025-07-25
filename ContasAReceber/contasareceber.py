@@ -1,7 +1,6 @@
 from Gui import gui
 from Database import database
 from tkinter import messagebox
-import pywhatkit
 import time
 
 def abrir_contas_a_receber():
@@ -713,6 +712,8 @@ def atualizar_lista_cobrancas(tree):
     conn.close()
 
 def enviar_cobranca(tree, mensagem):
+    import pywhatkit
+
     selecionados = []
     for item in tree.get_children():
         if tree.item(item)['values'][0] == '☒':  # Checkbox marcado
